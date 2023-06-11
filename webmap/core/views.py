@@ -123,6 +123,7 @@ def import_spectra(request):
             print(f"Couldn't find SpectrumModel {best_model_name}")
             continue
         pulsar.spectrum_model = spectrum_model
+        pulsar.save()
         for p, v, _ in zip(iminuit_result.parameters, iminuit_result.values, iminuit_result.errors):
             fit = models.SpectralFit.objects.filter(pulsar=pulsar, parameter__name=p).first()
             if fit:

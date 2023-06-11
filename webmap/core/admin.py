@@ -14,7 +14,8 @@ import astropy.units as u
 
 # Register your models here.
 class PulsarAdmin(admin.ModelAdmin):
-    list_display = ('id', '__str__', 'ra_dec', 'period', 'DM', 'RM',)
+    list_display = ('id', '__str__', 'ra_dec', 'period', 'DM', 'RM', 'spectrum_model',)
+    list_filter = ('spectrum_model',)
 
     def DM(self, obj):
         if obj.dm is not None and obj.dm_error is not None:
