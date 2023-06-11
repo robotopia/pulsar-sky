@@ -1,2 +1,4 @@
+django
 astropy
 numpy
+pulsar-spectra
