@@ -12,7 +12,11 @@ from . import views
 from astropy.coordinates import SkyCoord
 import astropy.units as u
 
-# Register your models here.
+class ATNFFluxMeasurementAdmin(admin.ModelAdmin):
+    list_display = ('id', 'pulsar', 'freq', 'flux_str',)
+    search_fields = ('pulsar__bname', 'pulsar__jname')
+    list_filter = ('freq',)
+
 class PulsarAdmin(admin.ModelAdmin):
     list_display = ('id', '__str__', 'ra_dec', 'period', 'DM', 'RM', 'spectrum_model',)
     list_filter = ('spectrum_model',)
@@ -35,6 +39,28 @@ class PulsarAdmin(admin.ModelAdmin):
         coord = SkyCoord(ra=obj.ra*u.deg, dec=obj.dec*u.deg)
         return coord.to_string('hmsdms', precision=1)
 
+    actions = ['set_atnf_power_laws']
+
+    @admin.action(description="Set to ATNF simple power law")
+    def set_atnf_power_laws(self, request, queryset):
+
+        num_set = 0
+
+        for pulsar in queryset.all():
+
+            if views.set_atnf_power_law(pulsar):
+                num_set += 1
+
+        self.message_user(
+            request,
+            ngettext(
+                "%d pulsar updated.",
+                "%d pulsars updated.",
+                num_set,
+            ) % num_set,
+            messages.SUCCESS,
+        )
+
 class SpectrumModelAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'pulsar_spectra_name',)
 
@@ -43,11 +69,13 @@ class SpectrumModelParameterAdmin(admin.ModelAdmin):
 
 class SpectralFitAdmin(admin.ModelAdmin):
     list_display = ('id', 'pulsar', 'model_name', 'parameter', 'value',)
+    search_fields = ('pulsar__bname', 'pulsar__jname')
 
     def model_name(self, obj):
         return f"{obj.parameter.spectrum_model}"
 
 
+admin.site.register(models.ATNFFluxMeasurement, ATNFFluxMeasurementAdmin)
 admin.site.register(models.Pulsar, PulsarAdmin)
 admin.site.register(models.SpectrumModel, SpectrumModelAdmin)
 admin.site.register(models.SpectrumModelParameter, SpectrumModelParameterAdmin)

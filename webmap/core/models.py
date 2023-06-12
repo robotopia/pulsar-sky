@@ -27,10 +27,25 @@ class ATNFFluxMeasurement(models.Model):
         help_text="The error on the flux density in mJy",
     )
 
+    def flux_str(self):
+        if self.error is not None:
+            return f"{self.flux} ± {self.error} mJy"
+        else:
+            return f"{self.flux} mJy"
+
+    def __str__(self):
+        return f"{self.pulsar}: S{self.freq} = "#{self.flux_str}"
+
     class Meta:
         verbose_name = "ATNF flux measurement set"
         verbose_name_plural = "ATNF flux measurement sets"
         ordering = ("pulsar", "freq",)
+        constraints = [
+            models.UniqueConstraint(
+                fields=["pulsar", "freq"],
+                name='unique_pulsar_freq',
+            ),
+        ]
 
 
 class Pulsar(models.Model):
