@@ -5,6 +5,34 @@ from django.core.exceptions import ValidationError
 
 # Create your models here.
 
+class ATNFFluxMeasurement(models.Model):
+
+    pulsar = models.ForeignKey(
+        "Pulsar",
+        on_delete=models.CASCADE,
+        related_name="atnf_flux_measurements",
+    )
+
+    freq = models.FloatField(
+        help_text="The frequency in MHz",
+    )
+
+    flux = models.FloatField(
+        help_text="The flux density in mJy",
+    )
+
+    error = models.FloatField(
+        null=True,
+        blank=True,
+        help_text="The error on the flux density in mJy",
+    )
+
+    class Meta:
+        verbose_name = "ATNF flux measurement set"
+        verbose_name_plural = "ATNF flux measurement sets"
+        ordering = ("pulsar", "freq",)
+
+
 class Pulsar(models.Model):
 
     bname = models.CharField(

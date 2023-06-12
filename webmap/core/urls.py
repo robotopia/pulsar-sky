@@ -23,5 +23,6 @@ from . import views
 
 urlpatterns = [
     re_path(r'^import_atnf/$', views.import_atnf, name='import_atnf'),
+    re_path(r'^update_atnf_fluxes/$', views.update_atnf_fluxes, name='update_atnf_fluxes'),
     re_path(r'^import_spectra/$', views.import_spectra, name='import_spectra'),
 ]

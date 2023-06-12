@@ -10,6 +10,42 @@ import subprocess
 from pulsar_spectra.catalogue import collect_catalogue_fluxes
 from pulsar_spectra.spectral_fit import find_best_spectral_fit
 
+def update_atnf_fluxes(request):
+
+    # Now grab the catalogue's contents
+    completed_process = subprocess.run(
+        ['psrcat', '-nonumber', '-nohead', '-o', 'short_error', '-c',
+         'jname S30 S40 S50 S60 S80 S100 S150 S200 S300 S350 S400 S600 S700 S800 S900 S1400 S1600 S2000 S3000 S4000 S5000 S6000 S8000 S10G S20G S50G S100G S150G'],
+        capture_output=True,
+    )
+    stdout = completed_process.stdout.decode("utf-8")
+
+    freqs = [30, 40, 50, 60, 80, 100, 150, 200, 300, 350, 400, 600, 700, 800, 900, 1400, 1600, 2000, 3000, 4000, 5000, 6000, 8000, 10000, 20000, 50000, 100000, 150000]
+    flux_cols = [2, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35, 37, 39, 41, 43, 45, 47, 48, 49, 50, 52]
+    error_cols = [None, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, None, None, None, 51, 53]
+    print(len(freqs), len(flux_cols), len(error_cols))
+
+    '''
+    for line in stdout.split('\n'):
+
+        tokens = line.split()
+
+        # Ignore problematic lines with too few tokens
+        if len(tokens) < 12:
+            continue
+
+        bname = None if tokens[0] == '*' else tokens[0]
+        jname = None if tokens[1] == '*' else tokens[1]
+
+        # Find the matching pulsar, otherwise ignore
+        pulsar = models.Pulsar.objects.filter(Q(bname=bname) | Q(jname=jname)).first()
+        if not pulsar:
+            continue
+    '''
+
+    return HttpResponse("ok", headers={"Content-Type": "text/plain"})
+    #return redirect(reverse('admin:core_pulsar_changelist'))
+
 def import_atnf(request):
 
     # Grab the ATNF catalogue number (this also tests whether psrcat is installed)
@@ -148,5 +184,5 @@ def import_spectra(request):
                 fit = models.SpectralFit(pulsar=pulsar, parameter=parameter, value=v)
                 fit.save()
 
-    #return redirect(reverse('admin:core_spectralfit_changelist'))
-    return HttpResponse("ok", headers={"Content-Type": "text/plain"})
+    return redirect(reverse('admin:core_spectralfit_changelist'))
+    #return HttpResponse("ok", headers={"Content-Type": "text/plain"})
