@@ -20,6 +20,7 @@ class ATNFFluxMeasurementAdmin(admin.ModelAdmin):
 class PulsarAdmin(admin.ModelAdmin):
     list_display = ('id', '__str__', 'ra_dec', 'period', 'DM', 'RM', 'spectrum_model',)
     list_filter = ('spectrum_model',)
+    search_fields = ('bname', 'jname')
 
     def DM(self, obj):
         if obj.dm is not None and obj.dm_error is not None:

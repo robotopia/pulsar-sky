@@ -18,7 +18,7 @@ def power_law_fit(νnorm, c, α):
 def power_law(ν, νref, c, α):
     return power_law_fit(ν/νref)
 
-def set_atnf_power_law(pulsar, default_spectral_index=-1.6, overwrite=False):
+def set_atnf_power_law(pulsar, default_spectral_index=-1.6, overwrite=False, set_as_select=True):
     '''
     If overwrite = False, ignore pulsars which already have simple power laws
     '''
@@ -83,18 +83,26 @@ def set_atnf_power_law(pulsar, default_spectral_index=-1.6, overwrite=False):
         fit_a.value = a_value
     else:
         fit_a = models.SpectralFit(pulsar=pulsar, parameter=a, value=a_value)
+    fit_a.save()
 
     fit_c = models.SpectralFit.objects.filter(pulsar=pulsar, parameter=c).first()
     if fit_c:
         fit_c.value = c_value
     else:
         fit_c = models.SpectralFit(pulsar=pulsar, parameter=c, value=c_value)
+    fit_c.save()
 
     fit_v0 = models.SpectralFit.objects.filter(pulsar=pulsar, parameter=v0).first()
     if fit_v0:
         fit_v0.value = X_ref*1e6 # in Hz
     else:
-        fit_v0 = models.SpectralFit(pulsar=pulsar, parameter=c, value=X_ref*1e6)
+        fit_v0 = models.SpectralFit(pulsar=pulsar, parameter=v0, value=X_ref*1e6)
+    fit_v0.save()
+
+    if set_as_select:
+        if not pulsar.spectrum_model:
+            pulsar.spectrum_model = simple_power_law
+            pulsar.save()
 
     return True
 
