@@ -15,13 +15,13 @@ from pulsar_spectra.spectral_fit import find_best_spectral_fit
 def map(request):
 
     try:
-        minJy = float(request.GET.get("minJy"))
+        minJy = float(request.GET.get("minjy"))
     except:
         minJy = 0.001
     minLogJy = np.log10(minJy)
 
     try:
-        maxJy = float(request.GET.get("maxJy"))
+        maxJy = float(request.GET.get("maxjy"))
     except:
         maxJy = 1
     maxLogJy = np.log10(maxJy)
@@ -106,6 +106,16 @@ def set_atnf_power_law(pulsar, default_spectral_index=-1.6, overwrite=False, set
         a_value = default_spectral_index
         c_value = atnf.flux
 
+    elif len(atnf_flux_measurements) == 2:
+        # Calculate the power law explicitly
+        X_MHz = np.array([atnf.freq for atnf in atnf_flux_measurements]) # in MHz
+        X_ref = np.sqrt(X_MHz[0]*X_MHz[-1]) # in MHz
+        X = X_MHz / X_ref # Now normalised to the geometric mean of the range
+        Y = np.array([atnf.flux for atnf in atnf_flux_measurements]) # in mJy
+
+        a_value = np.log(Y[1]/Y[0]) / np.log(X[1]/X[0])
+        c_value = Y[0] / X[0]**a_value
+
     else: # if len(...) > 1
 
         X_MHz = np.array([atnf.freq for atnf in atnf_flux_measurements]) # in MHz
@@ -117,7 +127,8 @@ def set_atnf_power_law(pulsar, default_spectral_index=-1.6, overwrite=False, set
         # but others don't. For now, I'll just treat them all as not having errors.
         #sigma = [atnf.error for atnf in atnf_flux_measurements]
 
-        popt, pcov = curve_fit(power_law_fit, X, Y)
+        p0 = (0.05, -1.6)
+        popt, pcov = curve_fit(power_law_fit, X, Y, p0=p0)
 
         a_value = popt[1]
         c_value = popt[0]

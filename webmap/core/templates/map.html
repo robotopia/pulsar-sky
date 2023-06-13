@@ -12,6 +12,7 @@
             <input class="formLabel" value="Show flashing by period"></input>
             <input type="checkbox" id="cbFlashing" onclick="toggle_flashing(this);"></input>
         </div>
+        <input type="hidden" id="viewWidth" value=30></input>
         <div id="map_div">
             <svg class="map" id="map" width="500" height="500" viewBox="0 0 500 500" style="height: 100%; width: 100%; background-color: black;"></svg>
         </div>
@@ -35,7 +36,8 @@
                 a = d.parameters.a;
                 c = d.parameters.c;
                 v0 = d.parameters.v0;
-                return c * (freq/v0)**a;
+                S = c * (freq/v0)**a;
+                return S;
             }
             else if (d.spectrum_model == "broken_power_law") {
                 a1 = d.parameters.a1;
@@ -57,13 +59,13 @@
                 if (freq < vc) {
                     S = c*(freq/v0)**a;
                     S *= (1 - freq/vc);
-                    S *= Math.exp((a/beta) * (freq/vc)**(-beta))
+                    S *= Math.exp((a/beta) * (freq/vpeak)**(-beta))
                     return S;
                 }
 
                 return 0;
             }
-            if (d.spectrum_model == "high_frequency_cut_off_power_law") {
+            else if (d.spectrum_model == "high_frequency_cut_off_power_law") {
                 a = d.parameters.a;
                 c = d.parameters.c;
                 v0 = d.parameters.v0;
@@ -77,8 +79,30 @@
 
                 return 0;
             }
+            else if (d.spectrum_model == "log_parabolic_spectrum") {
+                a = d.parameters.a;
+                b = d.parameters.b;
+                c = d.parameters.c;
+                v0 = d.parameters.v0;
 
-            return 10**maxLogJy.value;
+                x = Math.log10(freq/v0)
+                S = 10**(a*x*x + b*x + c)
+                return S;
+            }
+            else if (d.spectrum_model == "low_frequency_turn_over_power_law") {
+                vc = d.parameters.vc;
+                vpeak = d.parameters.vpeak;
+                a = d.parameters.a;
+                beta = d.parameters.beta;
+                c = d.parameters.c;
+                v0 = d.parameters.v0;
+
+                S = c*(freq/v0)**a;
+                S *= Math.exp((a/beta) * (freq/vpeak)**(-beta));
+                return S;
+            }
+
+            return 0;
         }
 
         function brightness(d) {
@@ -108,7 +132,7 @@
         var map_svg = d3.select("#map")
         var width = +map_svg.attr("width");
         var height = +map_svg.attr("height");
-        const view_deg = 30;
+        const viewWidth = document.getElementById("viewWidth")
         const ra_ctr = 12;
         const dec_ctr = -7;
 
@@ -117,6 +141,9 @@
             data.forEach(function(d) {
                 document.getElementById(d.name).style.opacity = brightness(d);
                 d.flux_density = flux_density(10**(frequency.value), d);
+                //if (d.name == "J0034-0534") {
+                //    console.log(d);
+                //}
             });
         }
 
@@ -138,10 +165,17 @@
         }
 
         var projection = d3.geoStereographic()
-            .scale(width*50/view_deg)
             .translate([width / 2, height / 2])
             .precision(0.1)
             .rotate([ra_ctr, dec_ctr])
+
+        function changeScale() {
+            newScale = width*50/viewWidth.value;
+            console.log(newScale);
+            projection.scale(newScale);
+        }
+
+        changeScale();
 
         const path = d3.geoPath(projection);
 
@@ -152,6 +186,11 @@
         let graticuleGenerator = d3.geoGraticule().
             step([5,5]);
         let graticules = graticuleGenerator();
+
+        map_svg.on("wheel", function(svg) {
+            viewWidth.value *= 1.001**(d3.event.wheelDelta);
+            changeScale();
+        });
 
         map_svg.append('path')
             .attr("id", "graticules")
@@ -174,8 +213,9 @@
             .style("fill", "white")
             .on("mouseover", (d) => mouse_over_pulsar_func(d))
             .on("mouseout", (d) => mouse_out_pulsar_func(d))
-            .style("opacity", (d) => brightness(d))
             //.on("click", (d) => click_func(d))
+
+        update_fluxes(); // Set initial fluxes
 
         // Define the div for the tooltip
         var tooltip = d3.select("body").append("div")
