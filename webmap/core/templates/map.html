@@ -1,0 +1,99 @@
+{% load static %}
+
+<html>
+    <body>
+        <div class="frequencySlider">
+            <input type="range" min="50" max="4000" class="slider" id="frequency">
+        </div>
+        <div id="map_div">
+            <svg class="map" id="map" width="500" height="500" viewBox="0 0 500 500" style="height: 100%; width: 100%"></svg>
+        </div>
+    </body>
+    <script src="https://d3js.org/d3.v4.js"></script>
+    <script src="https://d3js.org/d3-geo-projection.v2.min.js"></script>
+    <script>
+        // pulsar_spectra functions
+        function flux_density(freq, spectrum_model, parameters) {
+            if (spectrum_model == "simple_power_law") {
+                a = parameters.a;
+                c = parameters.c;
+                v0 = parameters.v0;
+                return c * (freq/v0)**a;
+            }
+
+            return 0;
+        }
+
+        data = [
+            {% for d in data %}
+            {
+                "name": "{{ d.pulsar.name }}",
+                "ra": {{ d.pulsar.ra }},
+                "dec": {{ d.pulsar.dec }},
+                "function": "{{ d.pulsar.spectrum_model.pulsar_spectra_name }}",
+                    "parameters": {
+                        {% for spectral_fit in d.spectral_fits %}
+                        "{{ spectral_fit.parameter.name }}": {{ spectral_fit.value }},
+                        {% endfor %}
+                    }
+            },
+            {% endfor %}
+        ]
+
+        var map_svg = d3.select("#map")
+        var width = +map_svg.attr("width");
+        var height = +map_svg.attr("height");
+        const view_deg = 30;
+        const ra_ctr = 12;
+        const dec_ctr = -7;
+
+        var projection = d3.geoStereographic()
+            .scale(width*50/view_deg)
+            .translate([width / 2, height / 2])
+            .precision(0.1)
+            .rotate([ra_ctr, dec_ctr])
+
+        const path = d3.geoPath(projection);
+
+        // Add coordinate grid
+        let geoGenerator = d3.geoPath()
+            .projection(projection)
+
+        let graticuleGenerator = d3.geoGraticule().
+            step([1,1]);
+        let graticules = graticuleGenerator();
+
+        map_svg.append('path')
+            .attr("id", "graticules")
+            .datum(graticules)
+            .attr('d', path)
+            .style("fill", "none")
+            .attr("stroke", "#ccc");
+
+        // Add pulsars
+        map_svg.append('g')
+            .attr("id", "pulsars")
+            .selectAll("svgPulsars")
+            .data(data)
+            .enter()
+            .append("circle")
+            .attr("r", 2)
+            .attr("cx", function(d) { return projection([-d.ra, d.dec])[0]; })
+            .attr("cy", function(d) { return projection([-d.ra, d.dec])[1]; })
+            .style("fill", "black")
+    </script>
+<style>
+/* The slider itself */
+.slider {
+  -webkit-appearance: none;  /* Override default CSS styles */
+  appearance: none;
+  width: 100%; /* Full-width */
+  height: 25px; /* Specified height */
+  background: #d3d3d3; /* Grey background */
+  outline: none; /* Remove outline */
+  opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
+  -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+  transition: opacity .2s;
+}
+</style>
+</html>

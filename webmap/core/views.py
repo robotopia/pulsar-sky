@@ -12,6 +12,18 @@ import numpy as np
 from pulsar_spectra.catalogue import collect_catalogue_fluxes
 from pulsar_spectra.spectral_fit import find_best_spectral_fit
 
+def map(request):
+
+    pulsars = models.Pulsar.objects.filter(spectrum_model__isnull=False)
+    context = {
+        'data': [{
+            'pulsar': pulsar,
+            'spectral_fits': models.SpectralFit.objects.filter(pulsar=pulsar, parameter__spectrum_model=pulsar.spectrum_model),
+        } for pulsar in pulsars]
+    }
+
+    return render(request, 'map.html', context)
+
 def power_law_fit(νnorm, c, α):
     return c*νnorm**α
 
