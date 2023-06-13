@@ -18,7 +18,7 @@ class ATNFFluxMeasurementAdmin(admin.ModelAdmin):
     list_filter = ('freq',)
 
 class PulsarAdmin(admin.ModelAdmin):
-    list_display = ('id', '__str__', 'ra_dec', 'period', 'DM', 'RM', 'spectrum_model',)
+    list_display = ('id', '__str__', 'ra_dec', 'period', 'DM', 'RM', 'spectrum_model', 'fit_link',)
     list_filter = ('spectrum_model',)
     search_fields = ('bname', 'jname')
 
@@ -40,7 +40,14 @@ class PulsarAdmin(admin.ModelAdmin):
         coord = SkyCoord(ra=obj.ra*u.deg, dec=obj.dec*u.deg)
         return coord.to_string('hmsdms', precision=1)
 
-    actions = ['set_atnf_power_laws']
+    def fit_link(self, obj):
+        if obj.spectrum_model:
+            url = reverse('admin:core_spectralfit_changelist') + f'?pulsar__id__exact={obj.id}'
+            return format_html('<a href="{url}">Go to fit</a>', url=url)
+        else:
+            return ""
+
+    actions = ['set_atnf_power_laws', 'set_atnf_power_laws_force']
 
     @admin.action(description="Set to ATNF simple power law")
     def set_atnf_power_laws(self, request, queryset):
@@ -62,6 +69,26 @@ class PulsarAdmin(admin.ModelAdmin):
             messages.SUCCESS,
         )
 
+    @admin.action(description="Set to ATNF simple power law (force)")
+    def set_atnf_power_laws_force(self, request, queryset):
+
+        num_set = 0
+
+        for pulsar in queryset.all():
+
+            if views.set_atnf_power_law(pulsar, overwrite=True):
+                num_set += 1
+
+        self.message_user(
+            request,
+            ngettext(
+                "%d pulsar updated.",
+                "%d pulsars updated.",
+                num_set,
+            ) % num_set,
+            messages.SUCCESS,
+        )
+
 class SpectrumModelAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'pulsar_spectra_name',)
 
@@ -69,7 +96,7 @@ class SpectrumModelParameterAdmin(admin.ModelAdmin):
     list_display = ('id', 'spectrum_model', 'name',)
 
 class SpectralFitAdmin(admin.ModelAdmin):
-    list_display = ('id', 'pulsar', 'model_name', 'parameter', 'value',)
+    list_display = ('id', 'pulsar', 'parameter', 'value',)
     search_fields = ('pulsar__bname', 'pulsar__jname')
 
     def model_name(self, obj):

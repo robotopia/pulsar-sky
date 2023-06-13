@@ -153,7 +153,7 @@ class SpectrumModel(models.Model):
 
     pulsar_spectra_name = models.CharField(
         max_length=128,
-        unique=True,
+        help_text="The name used to identify the functional form (as implemented in pulsar_sectra).",
     )
 
     def __str__(self):
@@ -176,7 +176,7 @@ class SpectrumModelParameter(models.Model):
     )
 
     def __str__(self):
-        return self.name
+        return f"{self.spectrum_model}: {self.name}"
 
     class Meta:
         ordering = ("spectrum_model", "name",)

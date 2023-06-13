@@ -29,7 +29,7 @@ def set_atnf_power_law(pulsar, default_spectral_index=-1.6, overwrite=False, set
         return False
 
     # Retrieve the SpectrumModel object corresponding to a simple power law
-    simple_power_law = models.SpectrumModel.objects.filter(name="Simple power law").first()
+    simple_power_law = models.SpectrumModel.objects.filter(name="ATNF simple power law").first()
     if not simple_power_law:
         # ...then we have bigger problems. Abort! Abort!
         return False
@@ -77,6 +77,9 @@ def set_atnf_power_law(pulsar, default_spectral_index=-1.6, overwrite=False, set
 
         a_value = popt[1]
         c_value = popt[0]
+
+    # ATNF fluxes are in mJy, but pulsar_spectra expects Jy
+    c_value /= 1e3
 
     fit_a = models.SpectralFit.objects.filter(pulsar=pulsar, parameter=a).first()
     if fit_a:
