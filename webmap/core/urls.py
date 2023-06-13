@@ -26,4 +26,5 @@ urlpatterns = [
     re_path(r'^import_atnf/$', views.import_atnf, name='import_atnf'),
     re_path(r'^update_atnf_fluxes/$', views.update_atnf_fluxes, name='update_atnf_fluxes'),
     re_path(r'^import_spectra/$', views.import_spectra, name='import_spectra'),
+    re_path(r'^set_all_atnf_power_laws/$', views.set_all_atnf_power_laws, name='set_all_atnf_power_laws'),
 ]

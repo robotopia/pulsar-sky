@@ -2,26 +2,88 @@
 
 <html>
     <body>
-        <div class="frequencySlider">
-            <input type="range" min="50" max="4000" class="slider" id="frequency">
+        <div class="settings" style="position: absolute; width: 50%;">
+            <input class="formLabel" value="Frequency: {{ freq_MHz }} MHz"></input>
+            <input type="range" min="7.6990" max="9.6990" class="slider" id="frequency" oninput="this.previousElementSibling.value = 'Frequency: ' + 10**(this.value - 6) + ' MHz'" value="{{ logFreq }}" step="0.005" onchange="update_fluxes()"></input>
+            <input class="formLabel" value="Minimum visibile flux density: {{ minJy }} Jy"></input>
+            <input type="range" min="-4" max="4" class="slider" id="minLogJy" oninput="this.previousElementSibling.value = 'Minimum visibile flux density: ' + 10**this.value + ' Jy'" value="{{ minLogJy }}" step="0.005" onchange="update_fluxes()"></input>
+            <input class="formLabel" value="Maximum visibile flux density: {{ maxJy }} Jy"></input>
+            <input type="range" min="-4" max="4" class="slider" id="maxLogJy" oninput="this.previousElementSibling.value = 'Maximum visibile flux density: ' + 10**this.value + ' Jy'" value="{{ maxLogJy }}" step="0.005" onchange="update_fluxes()"></input>
+            <input class="formLabel" value="Show flashing by period"></input>
+            <input type="checkbox" id="cbFlashing" onclick="toggle_flashing(this);"></input>
         </div>
         <div id="map_div">
-            <svg class="map" id="map" width="500" height="500" viewBox="0 0 500 500" style="height: 100%; width: 100%"></svg>
+            <svg class="map" id="map" width="500" height="500" viewBox="0 0 500 500" style="height: 100%; width: 100%; background-color: black;"></svg>
         </div>
     </body>
     <script src="https://d3js.org/d3.v4.js"></script>
     <script src="https://d3js.org/d3-geo-projection.v2.min.js"></script>
     <script>
+        // tooltip div
+        var tooltip = d3.select("body").append("div")
+            .attr("id", "tooltip")
+            .attr("class", "tooltip")
+            .style("opacity", 0);
+
+        var frequency = document.getElementById("frequency")
+        var minLogJy = document.getElementById("minLogJy")
+        var maxLogJy = document.getElementById("maxLogJy")
+
         // pulsar_spectra functions
-        function flux_density(freq, spectrum_model, parameters) {
-            if (spectrum_model == "simple_power_law") {
-                a = parameters.a;
-                c = parameters.c;
-                v0 = parameters.v0;
+        function flux_density(freq, d) {
+            if (d.spectrum_model == "simple_power_law") {
+                a = d.parameters.a;
+                c = d.parameters.c;
+                v0 = d.parameters.v0;
                 return c * (freq/v0)**a;
             }
+            else if (d.spectrum_model == "broken_power_law") {
+                a1 = d.parameters.a1;
+                a2 = d.parameters.a2;
+                c = d.parameters.c;
+                vb = d.parameters.vb;
+                v0 = d.parameters.v0;
+                if (freq < vb) return c * (freq/v0)**a1;
+                return c * (freq/v0)**a2 * (vb/v0)**(a1-a2);
+            }
+            else if (d.spectrum_model == "double_turn_over_spectrum") {
+                vc = d.parameters.vc;
+                vpeak = d.parameters.vpeak;
+                a = d.parameters.a;
+                beta = d.parameters.beta;
+                c = d.parameters.c;
+                v0 = d.parameters.v0;
 
-            return 0;
+                if (freq < vc) {
+                    S = c*(freq/v0)**a;
+                    S *= (1 - freq/vc);
+                    S *= Math.exp((a/beta) * (freq/vc)**(-beta))
+                    return S;
+                }
+
+                return 0;
+            }
+            if (d.spectrum_model == "high_frequency_cut_off_power_law") {
+                a = d.parameters.a;
+                c = d.parameters.c;
+                v0 = d.parameters.v0;
+                vc = d.parameters.vc;
+
+                if (freq < vc) {
+                    S = c*(freq/v0)**a;
+                    S *= (1 - freq/vc);
+                    return S;
+                }
+
+                return 0;
+            }
+
+            return 10**maxLogJy.value;
+        }
+
+        function brightness(d) {
+            logJy = Math.log10(flux_density(10**frequency.value, d));
+            return (logJy - minLogJy.value) / (maxLogJy.value - minLogJy.value)
         }
 
         data = [
@@ -30,12 +92,15 @@
                 "name": "{{ d.pulsar.name }}",
                 "ra": {{ d.pulsar.ra }},
                 "dec": {{ d.pulsar.dec }},
-                "function": "{{ d.pulsar.spectrum_model.pulsar_spectra_name }}",
-                    "parameters": {
-                        {% for spectral_fit in d.spectral_fits %}
-                        "{{ spectral_fit.parameter.name }}": {{ spectral_fit.value }},
-                        {% endfor %}
-                    }
+                "period": "{{ d.pulsar.period }}",
+                "dm": "{{ d.pulsar.dm }}",
+                "rm": "{{ d.pulsar.rm }}",
+                "spectrum_model": "{{ d.pulsar.spectrum_model.pulsar_spectra_name }}",
+                "parameters": {
+                    {% for spectral_fit in d.spectral_fits %}
+                    "{{ spectral_fit.parameter.name }}": {{ spectral_fit.value }},
+                    {% endfor %}
+                }
             },
             {% endfor %}
         ]
@@ -46,6 +111,31 @@
         const view_deg = 30;
         const ra_ctr = 12;
         const dec_ctr = -7;
+
+        // Update opacities based on values
+        function update_fluxes() {
+            data.forEach(function(d) {
+                document.getElementById(d.name).style.opacity = brightness(d);
+                d.flux_density = flux_density(10**(frequency.value), d);
+            });
+        }
+
+        function toggle_flashing(cb) {
+            if (cb.checked) {
+                console.log("on");
+                data.forEach(function(d) {
+                    svg_dot = document.getElementById(d.name)
+                    svg_dot.style.animation = "flashing " + d.period + "s linear infinite";
+                });
+            }
+            else {
+                console.log("off");
+                data.forEach(function(d) {
+                    svg_dot = document.getElementById(d.name)
+                    svg_dot.style.animation = "none";
+                });
+            }
+        }
 
         var projection = d3.geoStereographic()
             .scale(width*50/view_deg)
@@ -60,7 +150,7 @@
             .projection(projection)
 
         let graticuleGenerator = d3.geoGraticule().
-            step([1,1]);
+            step([5,5]);
         let graticules = graticuleGenerator();
 
         map_svg.append('path')
@@ -72,17 +162,54 @@
 
         // Add pulsars
         map_svg.append('g')
-            .attr("id", "pulsars")
+            .attr("class", "pulsars")
             .selectAll("svgPulsars")
             .data(data)
             .enter()
             .append("circle")
+            .attr("id", function(d) { return d.name; })
             .attr("r", 2)
             .attr("cx", function(d) { return projection([-d.ra, d.dec])[0]; })
             .attr("cy", function(d) { return projection([-d.ra, d.dec])[1]; })
-            .style("fill", "black")
+            .style("fill", "white")
+            .on("mouseover", (d) => mouse_over_pulsar_func(d))
+            .on("mouseout", (d) => mouse_out_pulsar_func(d))
+            .style("opacity", (d) => brightness(d))
+            //.on("click", (d) => click_func(d))
+
+        // Define the div for the tooltip
+        var tooltip = d3.select("body").append("div")
+            .attr("id", "tooltip")
+            .attr("class", "tooltip")
+            .style("opacity", 0);
+
+        var mouse_over_pulsar_func = function(d) {
+            tooltip.transition()
+                .duration(400)
+                .style("opacity", 1);
+            tooltip.html(function() {
+                outputStr = "<b>" + d.name + "</b><br>" +
+                            "Period: " + d.period + " s<br>" +
+                            "DM: " + d.dm + " pc/cm³<br>" +
+                            "RM: " + d.rm + " rad/m²<br>" +
+                            "Spectrum model: " + d.spectrum_model + "<br>" +
+                            "Flux density: " + (d.flux_density*1e3).toFixed(4) + " mJy @ " +
+                            (10**(frequency.value-6)).toFixed(0) + " MHz";
+                return outputStr;
+            })
+                .style("left", (d3.event.pageX + 20) + "px")
+                .style("top", (d3.event.pageY) + "px");
+        }
+
+        var mouse_out_pulsar_func = function(d) {
+            tooltip.style("left", "-10000px")
+                .style("top", "-10000px")
+                .style("opacity", "0");
+        }
+
     </script>
 <style>
+
 /* The slider itself */
 .slider {
   -webkit-appearance: none;  /* Override default CSS styles */
@@ -95,5 +222,28 @@
   -webkit-transition: .2s; /* 0.2 seconds transition on hover */
   transition: opacity .2s;
 }
+
+div.tooltip {
+    position: absolute;
+    text-align: left;
+    padding: 2px;
+    background: beige;
+}
+
+.formLabel {
+    background-color: black;
+    color: white;
+    border: 0px;
+    opacity: 0.7;
+    width: 100%;
+}
+
+@keyframes flashing {
+    0% { opacity: 0;}
+    50% { opacity: 1;}
+    100% { opacity: 0;}
+}
+
 </style>
+
 </html>

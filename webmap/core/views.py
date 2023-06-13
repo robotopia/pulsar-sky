@@ -14,12 +14,37 @@ from pulsar_spectra.spectral_fit import find_best_spectral_fit
 
 def map(request):
 
+    try:
+        minJy = float(request.GET.get("minJy"))
+    except:
+        minJy = 0.001
+    minLogJy = np.log10(minJy)
+
+    try:
+        maxJy = float(request.GET.get("maxJy"))
+    except:
+        maxJy = 1
+    maxLogJy = np.log10(maxJy)
+
+    try:
+        freq = float(request.GET.get("freq"))*1e6 # Get in MHz, convert to Hz
+    except:
+        freq = 1.4e9
+    logFreq = np.log10(freq)
+    print(logFreq)
+
     pulsars = models.Pulsar.objects.filter(spectrum_model__isnull=False)
     context = {
         'data': [{
             'pulsar': pulsar,
             'spectral_fits': models.SpectralFit.objects.filter(pulsar=pulsar, parameter__spectrum_model=pulsar.spectrum_model),
-        } for pulsar in pulsars]
+        } for pulsar in pulsars],
+        'maxJy': maxJy,
+        'maxLogJy': maxLogJy,
+        'minJy': minJy,
+        'minLogJy': minLogJy,
+        'freq_MHz': freq/1e6,
+        'logFreq': logFreq,
     }
 
     return render(request, 'map.html', context)
@@ -29,6 +54,13 @@ def power_law_fit(νnorm, c, α):
 
 def power_law(ν, νref, c, α):
     return power_law_fit(ν/νref)
+
+def set_all_atnf_power_laws(request):
+
+    for pulsar in models.Pulsar.objects.all():
+        set_atnf_power_law(pulsar)
+
+    return HttpResponse("done", headers={"Content-Type": "text/plain"})
 
 def set_atnf_power_law(pulsar, default_spectral_index=-1.6, overwrite=False, set_as_select=True):
     '''
