@@ -17,7 +17,7 @@
             <svg class="map" id="map" width="500" height="500" viewBox="0 0 500 500" style="height: 100%; width: 100%; background-color: black;"></svg>
         </div>
     </body>
-    <script src="https://d3js.org/d3.v4.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://d3js.org/d3-geo-projection.v2.min.js"></script>
     <script>
         // tooltip div
@@ -136,17 +136,6 @@
         const ra_ctr = 12;
         const dec_ctr = -7;
 
-        // Update opacities based on values
-        function update_fluxes() {
-            data.forEach(function(d) {
-                document.getElementById(d.name).style.opacity = brightness(d);
-                d.flux_density = flux_density(10**(frequency.value), d);
-                //if (d.name == "J0034-0534") {
-                //    console.log(d);
-                //}
-            });
-        }
-
         function toggle_flashing(cb) {
             if (cb.checked) {
                 console.log("on");
@@ -166,16 +155,9 @@
 
         var projection = d3.geoStereographic()
             .translate([width / 2, height / 2])
+            .scale(width*50/viewWidth.value)
             .precision(0.1)
             .rotate([ra_ctr, dec_ctr])
-
-        function changeScale() {
-            newScale = width*50/viewWidth.value;
-            console.log(newScale);
-            projection.scale(newScale);
-        }
-
-        changeScale();
 
         const path = d3.geoPath(projection);
 
@@ -187,35 +169,28 @@
             step([5,5]);
         let graticules = graticuleGenerator();
 
-        map_svg.on("wheel", function(svg) {
-            viewWidth.value *= 1.001**(d3.event.wheelDelta);
-            changeScale();
-        });
-
-        map_svg.append('path')
-            .attr("id", "graticules")
+        coord_grid = map_svg.append('path')
+            .attr("class", "graticules")
             .datum(graticules)
             .attr('d', path)
             .style("fill", "none")
             .attr("stroke", "#ccc");
 
         // Add pulsars
-        map_svg.append('g')
-            .attr("class", "pulsars")
-            .selectAll("svgPulsars")
-            .data(data)
-            .enter()
-            .append("circle")
-            .attr("id", function(d) { return d.name; })
-            .attr("r", 2)
-            .attr("cx", function(d) { return projection([-d.ra, d.dec])[0]; })
-            .attr("cy", function(d) { return projection([-d.ra, d.dec])[1]; })
-            .style("fill", "white")
-            .on("mouseover", (d) => mouse_over_pulsar_func(d))
-            .on("mouseout", (d) => mouse_out_pulsar_func(d))
-            //.on("click", (d) => click_func(d))
+        var selection = map_svg.selectAll(".pulsar").data(data)
 
-        update_fluxes(); // Set initial fluxes
+        let pulsars = selection.join(
+            enter => enter.append("circle")
+                .attr("id", function(d) { return d.name; })
+                .attr("r", 2)
+                .style("fill", "white")
+                .on("mouseover", (event, d) => mouse_over_pulsar_func(event, d))
+                .on("mouseout", (event, d) => mouse_out_pulsar_func(event, d)),
+                //.on("click", (event, d) => click_func(event, d))
+            update => update,
+            exit => exit.remove()
+        ).attr("cx", function(d) { return projection([-d.ra, d.dec])[0]; })
+         .attr("cy", function(d) { return projection([-d.ra, d.dec])[1]; })
 
         // Define the div for the tooltip
         var tooltip = d3.select("body").append("div")
@@ -223,7 +198,7 @@
             .attr("class", "tooltip")
             .style("opacity", 0);
 
-        var mouse_over_pulsar_func = function(d) {
+        var mouse_over_pulsar_func = function(event, d) {
             tooltip.transition()
                 .duration(400)
                 .style("opacity", 1);
@@ -237,15 +212,66 @@
                             (10**(frequency.value-6)).toFixed(0) + " MHz";
                 return outputStr;
             })
-                .style("left", (d3.event.pageX + 20) + "px")
-                .style("top", (d3.event.pageY) + "px");
+                .style("left", (event.pageX + 20) + "px")
+                .style("top", (event.pageY) + "px");
         }
 
-        var mouse_out_pulsar_func = function(d) {
+        var mouse_out_pulsar_func = function(event, d) {
             tooltip.style("left", "-10000px")
                 .style("top", "-10000px")
                 .style("opacity", "0");
         }
+
+        function setScale() {
+            newScale = width*50/viewWidth.value;
+            projection.scale(newScale);
+
+            // Update pulsars
+            data.forEach(function(d) {
+                element = document.getElementById(d.name)
+                coords = projection([-d.ra, d.dec]);
+                element.setAttribute("cx", coords[0]);
+                element.setAttribute("cy", coords[1]);
+            });
+        }
+
+        //map_svg.on("wheel", function(event, svg) {
+        //    viewWidth.value *= 1.001**(event.wheelDelta);
+        //    setScale();
+        //});
+        let zoom = d3.zoom()
+            .on("zoom", function(event) {
+                console.log(event);
+                let t = event.transform;
+                let ctr = projection.invert([width/2, height/2])
+                let off_ctr = projection.invert([width/2 + event.sourceEvent.movementX, height/2 + event.sourceEvent.movementY])
+                let coords_shift = [ctr[0] - off_ctr[0], ctr[1] - off_ctr[1]]
+                console.log("ctr: ", ctr)
+                console.log("off_ctr: ", off_ctr)
+                projection.scale(t.k).rotate(coords_shift);
+                pulsars.attr("cx", function(d) { return projection([-d.ra, d.dec])[0]; })
+                       .attr("cy", function(d) { return projection([-d.ra, d.dec])[1]; })
+                coord_grid.attr('d', path)
+            })
+
+        map_svg.call(zoom)
+
+        // Set up an initial projection translate and scale.
+        map_svg.call(zoom.transform, d3.zoomIdentity
+            .translate(width/2,height/2)
+            .scale(width*50/viewWidth.value));
+
+        // Update opacities based on values
+        function update_fluxes() {
+            pulsars.attr("opacity", (d) => brightness(d))
+            //data.forEach(function(d) {
+            //    document.getElementById(d.name).style.opacity = brightness(d);
+            //    d.flux_density = flux_density(10**(frequency.value), d);
+            //});
+        }
+
+        update_fluxes();
+        setScale();
 
     </script>
 <style>
