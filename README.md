@@ -53,7 +53,7 @@ The exceptions to this behaviour are `admin` itself, which is the standard Djang
 | `admin` | The standard Django admin interface |
 | `core/import_atnf` | Imports the pulsars from the ATNF catalogue |
 | `core/update_atnf_fluxes` | Imports the flux density data from the ATNF catalogue for the pulsars that have already been imported |
-| `core/import_spectra` | Imports the spectral fits (not the flux densities) from `pulsar_spectra` |
+| `core/import_spectra` | Imports the spectral fits (not the flux densities) from [pulsar_spectra](https://github.com/NickSwainston/pulsar_spectra) |
 | `core/set_all_atnf_power_laws` | Fits power laws to ATNF pulsar data (for pulsars that don't already have spectral fits) |
 | `core/map` | The interactive map showing the relative brightness of pulsars in the sky |
 
