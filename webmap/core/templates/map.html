@@ -4,11 +4,11 @@
     <body>
         <div class="settings" style="position: absolute; width: 50%;">
             <input class="formLabel" value="Frequency: {{ freq_MHz }} MHz"></input>
-            <input type="range" min="7.6990" max="9.6990" class="slider" id="frequency" oninput="this.previousElementSibling.value = 'Frequency: ' + 10**(this.value - 6) + ' MHz'" value="{{ logFreq }}" step="0.005" onchange="update_fluxes()"></input>
+            <input type="range" min="7.6990" max="9.6990" class="slider" id="frequency" oninput="this.previousElementSibling.value = 'Frequency: ' + (10**(this.value - 6)).toFixed(1) + ' MHz'" value="{{ logFreq }}" step="0.005" onchange="update_fluxes()"></input>
             <input class="formLabel" value="Minimum visibile flux density: {{ minJy }} Jy"></input>
-            <input type="range" min="-4" max="4" class="slider" id="minLogJy" oninput="this.previousElementSibling.value = 'Minimum visibile flux density: ' + 10**this.value + ' Jy'" value="{{ minLogJy }}" step="0.005" onchange="update_fluxes()"></input>
+            <input type="range" min="-4" max="4" class="slider" id="minLogJy" oninput="this.previousElementSibling.value = 'Minimum visibile flux density: ' + (10**this.value).toFixed(5) + ' Jy'" value="{{ minLogJy }}" step="0.005" onchange="update_fluxes()"></input>
             <input class="formLabel" value="Maximum visibile flux density: {{ maxJy }} Jy"></input>
-            <input type="range" min="-4" max="4" class="slider" id="maxLogJy" oninput="this.previousElementSibling.value = 'Maximum visibile flux density: ' + 10**this.value + ' Jy'" value="{{ maxLogJy }}" step="0.005" onchange="update_fluxes()"></input>
+            <input type="range" min="-4" max="4" class="slider" id="maxLogJy" oninput="this.previousElementSibling.value = 'Maximum visibile flux density: ' + (10**this.value).toFixed(5) + ' Jy'" value="{{ maxLogJy }}" step="0.005" onchange="update_fluxes()"></input>
             <input class="formLabel" value="Show flashing by period"></input>
             <input type="checkbox" id="cbFlashing" onclick="toggle_flashing(this);"></input>
         </div>
