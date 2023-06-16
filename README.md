@@ -20,6 +20,14 @@ In the `webmap` directory, run
 pip install -r requirements.txt
 ```
 
+#### Initialise (sqlite3) database
+
+In the `webmap` directory, run
+
+```
+python manage.py migrate
+```
+
 #### Create a Django superuser
 
 In the `webmap` directory, run
