@@ -138,14 +138,12 @@
 
         function toggle_flashing(cb) {
             if (cb.checked) {
-                console.log("on");
                 data.forEach(function(d) {
                     svg_dot = document.getElementById(d.name)
                     svg_dot.style.animation = "flashing " + d.period + "s linear infinite";
                 });
             }
             else {
-                console.log("off");
                 data.forEach(function(d) {
                     svg_dot = document.getElementById(d.name)
                     svg_dot.style.animation = "none";
@@ -209,7 +207,6 @@
                             "Spectrum model: " + d.spectrum_model + "<br>" +
                             "Flux density: " + (d.flux_density*1e3).toFixed(4) + " mJy @ " +
                             (10**(frequency.value-6)).toFixed(0) + " MHz";
-                console.log(d.flux_density)
                 return outputStr;
             })
                 .style("left", (event.pageX + 20) + "px")
