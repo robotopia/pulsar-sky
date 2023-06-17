@@ -106,8 +106,12 @@
         }
 
         function brightness(d) {
-            logJy = Math.log10(flux_density(10**frequency.value, d));
-            d.flux_density = 10**logJy;
+            d.flux_density = flux_density(10**frequency.value, d);
+            if (d.flux_density == 0) {
+                return 0;
+            }
+
+            logJy = Math.log10(d.flux_density);
             return (logJy - minLogJy.value) / (maxLogJy.value - minLogJy.value);
         }
 
