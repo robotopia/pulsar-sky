@@ -354,6 +354,12 @@ class Bibtex(models.Model):
         help_text="The International Standard Book Number (ISBN) of a book or report.",
     )
 
+    issue = models.CharField(
+        max_length=64,
+        null=True,
+        blank=True,
+    )
+
     journal = models.CharField(
         max_length=256,
         null=True,
@@ -608,14 +614,14 @@ class Author(models.Model):
 
 class AuthorOrder(models.Model):
 
-    author = models.ForeignKey(
-        "Author",
+    bibtex = models.ForeignKey(
+        "Bibtex",
         on_delete=models.CASCADE,
         related_name="author_orders",
     )
 
-    bibtex = models.ForeignKey(
-        "Bibtex",
+    author = models.ForeignKey(
+        "Author",
         on_delete=models.CASCADE,
         related_name="author_orders",
     )
@@ -625,10 +631,11 @@ class AuthorOrder(models.Model):
     )
 
     def __str__(self):
-        return "{self.author} in {self.bibtex}"
+        return f"{self.author} in {self.bibtex}"
 
     class Meta:
         ordering = ("bibtex", "order",)
+        constraints = [models.UniqueConstraint(fields=['bibtex', 'order'], name='well_determined_author_order')]
 
 
 class EditorOrder(models.Model):
@@ -650,10 +657,11 @@ class EditorOrder(models.Model):
     )
 
     def __str__(self):
-        return "{self.author} in {self.bibtex}"
+        return f"{self.author} in {self.bibtex}"
 
     class Meta:
         ordering = ("bibtex", "order",)
+        constraints = [models.UniqueConstraint(fields=['bibtex', 'order'], name='well_determined_editor_order')]
 
 
 class PulsarProperty(models.Model):

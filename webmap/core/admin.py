@@ -139,10 +139,11 @@ class PulsarPropertyAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'symbol', 'unit',)
 
 class PulsarPropertyMeasurementAdmin(admin.ModelAdmin):
-    list_display = ('id', 'pulsar', 'pulsar_property', 'value_display', 'unit', 'bibtex',)
+    list_display = ('id', 'pulsar', 'pulsar_property', 'value_display', 'bibtex',)
     list_filter = (
         ('pulsar', admin.RelatedOnlyFieldListFilter),
         ('pulsar_property', admin.RelatedOnlyFieldListFilter),
+        ('bibtex', admin.RelatedOnlyFieldListFilter),
     )
 
 class SpectrumModelAdmin(admin.ModelAdmin):
