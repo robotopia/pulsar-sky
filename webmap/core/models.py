@@ -663,6 +663,12 @@ class PulsarProperty(models.Model):
         unique=True,
     )
 
+    symbol = models.CharField(
+        max_length=16,
+        null=True,
+        blank=True,
+    )
+
     unit = models.CharField(
         null=True,
         blank=True,
