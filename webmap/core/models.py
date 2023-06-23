@@ -722,10 +722,44 @@ class PulsarPropertyMeasurement(models.Model):
         help_text="A string that can be parsed by astropy.units. Leave blank if dimensionless. Must be equivalent to the parent property's unit.",
     )
 
+    freq_MHz = models.FloatField(
+        verbose_name="Frequency (MHz)",
+        null=True,
+        blank=True,
+        help_text="The (centre) frequency at which this measurement was made.",
+    )
+
+    bandwidth_MHz = models.FloatField(
+        verbose_name="Bandwidth (MHz)",
+        null=True,
+        blank=True,
+        help_text="The frequency bandwidth with which this measurement was made.",
+    )
+
+    date = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="The (UTC) date/time at which the measurement was made.",
+    )
+
+    time_span_s = models.FloatField(
+        verbose_name="Time span (s)",
+        null=True,
+        blank=True,
+        help_text="The time span of the data used to make this measurement.",
+    )
+
     bibtex = models.ForeignKey(
         "Bibtex",
         on_delete=models.CASCADE,
     )
+
+    @property
+    def value_display(self):
+        if self.error:
+            return f"{self.value} ± {self.error} {self.unit}"
+
+        return f"{self.value} {self.unit}"
 
     def clean(self):
 
