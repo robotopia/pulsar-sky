@@ -736,10 +736,10 @@ class PulsarPropertyMeasurement(models.Model):
         help_text="The frequency bandwidth with which this measurement was made.",
     )
 
-    date = models.DateTimeField(
+    mjd = models.FloatField(
         null=True,
         blank=True,
-        help_text="The (UTC) date/time at which the measurement was made.",
+        help_text="The MJD when the measurement was made.",
     )
 
     time_span_s = models.FloatField(
