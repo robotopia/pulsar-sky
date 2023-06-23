@@ -422,6 +422,22 @@ class Bibtex(models.Model):
     )
 
     @property
+    def author_string(self):
+        author_orders = self.author_orders.all().order_by('order')
+        if author_orders.exists():
+            author_string = " and ".join([f"{{{author_order.author}}}" for author_order in author_orders])
+            return author_string
+        return None
+
+    @property
+    def editor_string(self):
+        editor_orders = self.editor_orders.all().order_by('order')
+        if editor_orders.exists():
+            editor_string = " and ".join([f"{{{editor_order.author}}}" for editor_order in editor_orders])
+            return editor_string
+        return None
+
+    @property
     def bibtex_string(self):
         bs = f"@{self.get_entry_type_display()}{{{self.citekey},\n"
 
@@ -431,9 +447,8 @@ class Bibtex(models.Model):
         if self.annote:
             bs += f'    annote = "{self.annote}",\n'
 
-        author_orders = self.author_orders.all().order_by('order')
-        if author_orders.exists():
-            author_string = " and ".join([f"{{{author_order.author}}}" for author_order in author_orders])
+        author_string = self.author_string # To avoid running it twice
+        if author_string:
             bs += f'    author = "{author_string}",\n'
 
         if self.booktitle:
@@ -448,9 +463,8 @@ class Bibtex(models.Model):
         if self.edition:
             bs += f'    edition = "{self.edition}",\n'
 
-        editor_orders = self.editor_orders.all().order_by('order')
-        if editor_orders.exists():
-            editor_string = " and ".join([f"{{{editor_order.author}}}" for editor_order in editor_orders])
+        editor_string = self.editor_string # To avoid running it twice
+        if editor_string:
             bs += f'    editor = "{editor_string}",\n'
 
         if self.howpublished:

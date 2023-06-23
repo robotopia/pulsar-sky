@@ -29,11 +29,12 @@ class AuthorOrderAdmin(admin.ModelAdmin):
     )
 
 class BibtexAdmin(admin.ModelAdmin):
-    list_display = ('id', 'entry_type', 'citekey',)
+    list_display = ('id', 'entry_type', 'citekey', 'author_string', 'title',)
     search_fields = ('address', 'annote',)
     readonly_fields = ('bibtex_string_html',)
     list_filter = (
         'entry_type',
+        ('author_orders__author', admin.RelatedOnlyFieldListFilter),
     )
     fieldsets = (
         (None, {
@@ -169,6 +170,7 @@ admin.site.register(models.ATNFFluxMeasurement, ATNFFluxMeasurementAdmin)
 admin.site.register(models.Author, AuthorAdmin)
 admin.site.register(models.AuthorOrder, AuthorOrderAdmin)
 admin.site.register(models.Bibtex, BibtexAdmin)
+admin.site.register(models.EditorOrder, AuthorOrderAdmin)
 admin.site.register(models.Pulsar, PulsarAdmin)
 admin.site.register(models.SpectrumModel, SpectrumModelAdmin)
 admin.site.register(models.SpectrumModelParameter, SpectrumModelParameterAdmin)
