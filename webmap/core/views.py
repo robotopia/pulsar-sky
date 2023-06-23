@@ -49,6 +49,16 @@ def map(request):
 
     return render(request, 'map.html', context)
 
+def pulsar_view(request, pk):
+
+    pulsar = models.Pulsar.objects.get(pk=pk)
+
+    context = {
+        "pulsar": pulsar,
+    }
+
+    return render(request, 'pulsar.html', context)
+
 def power_law_fit(νnorm, c, α):
     return c*νnorm**α
 

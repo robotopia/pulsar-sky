@@ -9,9 +9,6 @@ from django.db.models import Max
 from . import models
 from . import views
 
-from astropy.coordinates import SkyCoord
-import astropy.units as u
-
 class ATNFFluxMeasurementAdmin(admin.ModelAdmin):
     list_display = ('id', 'pulsar', 'freq', 'flux_str',)
     search_fields = ('pulsar__bname', 'pulsar__jname')
@@ -81,27 +78,9 @@ class BibtexAdmin(admin.ModelAdmin):
     bibtex_string_html.short_description = 'BibTeX string'
 
 class PulsarAdmin(admin.ModelAdmin):
-    list_display = ('id', '__str__', 'ra_dec', 'period', 'DM', 'RM', 'spectrum_model', 'fit_link',)
+    list_display = ('id', '__str__', 'ra_dec', 'period', 'DM', 'RM', 'spectrum_model', 'fit_link', 'pulsar_page_link',)
     list_filter = ('spectrum_model',)
     search_fields = ('bname', 'jname')
-
-    def DM(self, obj):
-        if obj.dm is not None and obj.dm_error is not None:
-            return f"{obj.dm} ± {obj.dm_error}"
-        if obj.dm is not None:
-            return f"{obj.dm}"
-        return ""
-
-    def RM(self, obj):
-        if obj.rm is not None and obj.rm_error is not None:
-            return f"{obj.rm} ± {obj.rm_error}"
-        if obj.rm is not None:
-            return f"{obj.rm}"
-        return ""
-
-    def ra_dec(self, obj):
-        coord = SkyCoord(ra=obj.ra*u.deg, dec=obj.dec*u.deg)
-        return coord.to_string('hmsdms', precision=1)
 
     def fit_link(self, obj):
         if obj.spectrum_model:
@@ -109,6 +88,10 @@ class PulsarAdmin(admin.ModelAdmin):
             return format_html('<a href="{url}">Go to fit</a>', url=url)
         else:
             return ""
+
+    def pulsar_page_link(self, obj):
+        url = reverse('pulsar_view', kwargs={"pk": obj.pk})
+        return format_html('<a href="{url}">{name} link</a>', url=url, name=obj.name)
 
     actions = ['set_atnf_power_laws', 'set_atnf_power_laws_force']
 
@@ -152,6 +135,17 @@ class PulsarAdmin(admin.ModelAdmin):
             messages.SUCCESS,
         )
 
+class PulsarPropertyAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'unit',)
+
+class PulsarPropertyMeasurementAdmin(admin.ModelAdmin):
+    list_display = ('id', 'pulsar', 'pulsar_property', 'value', 'error', 'unit', 'bibtex',)
+    list_filter = (
+        ('pulsar', admin.RelatedOnlyFieldListFilter),
+        ('pulsar_property', admin.RelatedOnlyFieldListFilter),
+        ('pulsar_property__unit', admin.RelatedOnlyFieldListFilter),
+    )
+
 class SpectrumModelAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'pulsar_spectra_name',)
 
@@ -172,6 +166,8 @@ admin.site.register(models.AuthorOrder, AuthorOrderAdmin)
 admin.site.register(models.Bibtex, BibtexAdmin)
 admin.site.register(models.EditorOrder, AuthorOrderAdmin)
 admin.site.register(models.Pulsar, PulsarAdmin)
+admin.site.register(models.PulsarProperty, PulsarPropertyAdmin)
+admin.site.register(models.PulsarPropertyMeasurement, PulsarPropertyMeasurementAdmin)
 admin.site.register(models.SpectrumModel, SpectrumModelAdmin)
 admin.site.register(models.SpectrumModelParameter, SpectrumModelParameterAdmin)
 admin.site.register(models.SpectralFit, SpectralFitAdmin)

@@ -4,6 +4,9 @@ from django.utils.html import format_html
 
 from django.core.exceptions import ValidationError
 
+from astropy.coordinates import SkyCoord
+import astropy.units as u
+
 # Create your models here.
 
 class ATNFFluxMeasurement(models.Model):
@@ -117,6 +120,33 @@ class Pulsar(models.Model):
         blank=True,
         on_delete=models.SET_NULL,
     )
+
+    @property
+    def DM(self):
+        if self.dm is not None and self.dm_error is not None:
+            return f"{self.dm} ± {self.dm_error}"
+        if self.dm is not None:
+            return f"{self.dm}"
+        return None
+
+    DM.fget.short_description = "DM (pc/cm³)"
+
+    @property
+    def RM(self):
+        if self.rm is not None and self.rm_error is not None:
+            return f"{self.rm} ± {self.rm_error}"
+        if self.rm is not None:
+            return f"{self.rm}"
+        return None
+
+    RM.fget.short_description = "RM (rad/m²)"
+
+    @property
+    def ra_dec(self):
+        coord = SkyCoord(ra=self.ra*u.deg, dec=self.dec*u.deg)
+        return coord.to_string('hmsdms', precision=1)
+
+    ra_dec.fget.short_description = "Coordinates (RA Dec)"
 
     @property
     def name(self):
@@ -625,3 +655,86 @@ class EditorOrder(models.Model):
     class Meta:
         ordering = ("bibtex", "order",)
 
+
+class PulsarProperty(models.Model):
+
+    name = models.CharField(
+        max_length=64,
+        unique=True,
+    )
+
+    unit = models.CharField(
+        null=True,
+        blank=True,
+        max_length=64,
+        help_text="A string that can be parsed by astropy.units. Leave blank if dimensionless.",
+    )
+
+    def clean(self):
+
+        if self.unit:
+            try:
+                unit = u.Unit(self.unit)
+            except:
+                raise ValidationError(f'Unable to interpret {self.unit} as a valid Astropy unit')
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name_plural = "Pulsar properties"
+        ordering = ("name",)
+
+
+class PulsarPropertyMeasurement(models.Model):
+
+    pulsar = models.ForeignKey(
+        "Pulsar",
+        on_delete=models.CASCADE,
+    )
+
+    pulsar_property = models.ForeignKey(
+        "PulsarProperty",
+        on_delete=models.CASCADE,
+    )
+
+    value = models.CharField(
+        max_length=1024,
+    )
+
+    error = models.CharField(
+        null=True,
+        blank=True,
+        max_length=1024,
+        help_text="The error on \"value\"",
+    )
+
+    unit = models.CharField(
+        null=True,
+        blank=True,
+        max_length=64,
+        help_text="A string that can be parsed by astropy.units. Leave blank if dimensionless. Must be equivalent to the parent property's unit.",
+    )
+
+    bibtex = models.ForeignKey(
+        "Bibtex",
+        on_delete=models.CASCADE,
+    )
+
+    def clean(self):
+
+        if self.unit:
+            try:
+                u1 = u.Unit(self.unit)
+            except:
+                raise ValidationError(f'Unable to interpret {self.unit} as a valid Astropy unit')
+
+            u2 = u.Unit(self.pulsar_property.unit)
+            if not u1.is_equivalent(u2):
+                raise ValidationError(f'The unit "{self.unit}" must be dimensionally equivalent to {self.pulsar_property.unit}')
+
+    def __str__(self):
+        return f"{self.pulsar_property} of {self.pulsar} ({self.bibtex})"
+
+    class Meta:
+        ordering = ("pulsar", "pulsar_property", "bibtex__year",)

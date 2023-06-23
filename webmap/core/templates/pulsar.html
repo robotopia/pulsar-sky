@@ -1,0 +1,29 @@
+{% load static %}
+
+<html>
+    <body>
+        <h1>{{ pulsar }}</h1>
+        <dl>
+            {% if pulsar.bname %}
+            <dt>Bname</dt>
+            <dd>{{ pulsar.bname }}</dd>
+            {% endif %}
+
+            {% if pulsar.jname %}
+            <dt>Jname</dt>
+            <dd>{{ pulsar.jname }}</dd>
+            {% endif %}
+
+            <dt>Coordinates</dt>
+            <dd>{{ pulsar.ra_dec }}</dd>
+
+            <dt>Period (s)</dt>
+            <dd>{{ pulsar.period }}</dd>
+
+            <dt>DM (pc/cm³)</dt>
+            <dd>{{ pulsar.DM }}</dd>
+
+            <dt>RM (pc/cm³)</dt>
+            <dd>{{ pulsar.RM }}</dd>
+    </body>
+</html>
