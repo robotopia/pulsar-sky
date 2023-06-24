@@ -693,6 +693,9 @@ class PulsarProperty(models.Model):
                 raise ValidationError(f'Unable to interpret {self.unit} as a valid Astropy unit')
 
     def __str__(self):
+        if self.symbol:
+            return f"{self.name} ({self.symbol})"
+
         return self.name
 
     class Meta:
@@ -720,7 +723,21 @@ class PulsarPropertyMeasurement(models.Model):
         null=True,
         blank=True,
         max_length=1024,
-        help_text="The error on \"value\"",
+        help_text="The error on \"value\". If error_low is given, then this value should be interpreted as the upper error.",
+    )
+
+    error_low = models.CharField(
+        null=True,
+        blank=True,
+        max_length=1024,
+        help_text="The lower error on \"value\". This should only be used if the error field is non-empty.",
+    )
+
+    mode = models.CharField(
+        null=True,
+        blank=True,
+        max_length=16,
+        help_text="The mode, if any, to which this measurement applies.",
     )
 
     unit = models.CharField(
@@ -764,6 +781,9 @@ class PulsarPropertyMeasurement(models.Model):
 
     @property
     def value_display(self):
+        if self.error and self.error_low:
+            return f"{self.value} (+{self.error} / -{self.error_low})"
+
         if self.error:
             return f"{self.value} ± {self.error} {self.unit}"
 

@@ -51,6 +51,7 @@ class BibtexAdmin(admin.ModelAdmin):
                 'month',
                 'doi',
                 'url',
+                'issue',
                 'chapter',
                 'isbn',
                 'address',
