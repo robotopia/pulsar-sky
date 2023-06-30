@@ -53,7 +53,7 @@ class BibtexAdmin(admin.ModelAdmin):
                 'annote',
                 'booktitle',
                 'edition',
-                'howpublished',
+                'how_published',
                 'institution',
                 'issn',
                 'note',
@@ -66,6 +66,11 @@ class BibtexAdmin(admin.ModelAdmin):
             ),
             #'classes': ('collapse',),
         }),
+        ('Other', {
+            'fields': (
+                'notes',
+            ),
+        }),
     )
 
     def bibtex_string_html(self, obj):
@@ -74,8 +79,13 @@ class BibtexAdmin(admin.ModelAdmin):
     bibtex_string_html.short_description = 'BibTeX string'
 
 
+class JournalAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'abbr',)
+    search_fields = ('name', 'abbr',)
+
 
 admin.site.register(models.Author, AuthorAdmin)
 admin.site.register(models.AuthorOrder, AuthorOrderAdmin)
 admin.site.register(models.Bibtex, BibtexAdmin)
 admin.site.register(models.EditorOrder, AuthorOrderAdmin)
+admin.site.register(models.Journal, JournalAdmin)

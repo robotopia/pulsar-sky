@@ -1,6 +1,27 @@
 from django.db import models
 
 
+class Journal(models.Model):
+
+    name = models.CharField(
+        max_length=256,
+        unique=True,
+        help_text="The full name of the journal.",
+    )
+
+    abbr = models.CharField(
+        max_length=32,
+        unique=True,
+        help_text="The abbreviated name of the journal.",
+    )
+
+    def __str__(self):
+        return self.abbr if self.abbr else self.name
+
+    class Meta:
+        ordering = ("abbr", "name",)
+
+
 class Bibtex(models.Model):
 
     BIBTEX_ARTICLE = 'AR'
@@ -76,6 +97,7 @@ class Bibtex(models.Model):
     )
 
     doi = models.CharField(
+        verbose_name="DOI",
         max_length=256,
         null=True,
         blank=True,
@@ -89,7 +111,7 @@ class Bibtex(models.Model):
         help_text="The edition number of a book.",
     )
 
-    howpublished = models.CharField(
+    how_published = models.CharField(
         max_length=256,
         null=True,
         blank=True,
@@ -104,6 +126,7 @@ class Bibtex(models.Model):
     )
 
     issn = models.CharField(
+        verbose_name="ISSN",
         max_length=64,
         null=True,
         blank=True,
@@ -111,6 +134,7 @@ class Bibtex(models.Model):
     )
 
     isbn = models.CharField(
+        verbose_name="ISBN",
         max_length=64,
         null=True,
         blank=True,
@@ -123,11 +147,12 @@ class Bibtex(models.Model):
         blank=True,
     )
 
-    journal = models.CharField(
-        max_length=256,
+    journal = models.ForeignKey(
+        "Journal",
         null=True,
         blank=True,
-        help_text="The name of the journal or magazine the article was published in.",
+        on_delete=models.CASCADE,
+        help_text="The journal or magazine the article was published in.",
     )
 
     month = models.CharField(
@@ -218,6 +243,12 @@ class Bibtex(models.Model):
         null=True,
         blank=True,
         help_text="The year the work was published or in the case of an unpublished article the year it was written.",
+    )
+
+    notes = models.TextField(
+        null=True,
+        blank=True,
+        help_text="Any extra notes about this bibtex entry.",
     )
 
     @property
