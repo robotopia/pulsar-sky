@@ -14,70 +14,6 @@ class ATNFFluxMeasurementAdmin(admin.ModelAdmin):
     search_fields = ('pulsar__bname', 'pulsar__jname')
     list_filter = ('freq',)
 
-class AuthorAdmin(admin.ModelAdmin):
-    list_display = ('id', '__str__')
-    search_fields = ('last', 'first', 'von', 'jr',)
-
-class AuthorOrderAdmin(admin.ModelAdmin):
-    list_display = ('id', 'bibtex', 'order', 'author',)
-    list_filter = (
-        ('bibtex', admin.RelatedOnlyFieldListFilter),
-        ('author', admin.RelatedOnlyFieldListFilter),
-    )
-
-class BibtexAdmin(admin.ModelAdmin):
-    list_display = ('id', 'entry_type', 'citekey', 'author_string', 'title',)
-    search_fields = ('address', 'annote',)
-    readonly_fields = ('bibtex_string_html',)
-    list_filter = (
-        'entry_type',
-        ('author_orders__author', admin.RelatedOnlyFieldListFilter),
-    )
-    fieldsets = (
-        (None, {
-            'fields': (
-                'bibtex_string_html',
-                'entry_type',
-                'citekey',
-            ),
-        }),
-        ('BibTeX fields', {
-            'fields': (
-                'title',
-                'journal',
-                'volume',
-                'pages',
-                'year',
-                'month',
-                'doi',
-                'url',
-                'issue',
-                'chapter',
-                'isbn',
-                'address',
-                'annote',
-                'booktitle',
-                'edition',
-                'howpublished',
-                'institution',
-                'issn',
-                'note',
-                'number',
-                'organization',
-                'publisher',
-                'school',
-                'type',
-                'series',
-            ),
-            #'classes': ('collapse',),
-        }),
-    )
-
-    def bibtex_string_html(self, obj):
-        return format_html('<pre>{}</pre>', obj.bibtex_string)
-
-    bibtex_string_html.short_description = 'BibTeX string'
-
 class PulsarAdmin(admin.ModelAdmin):
     list_display = ('id', '__str__', 'ra_dec', 'period', 'DM', 'RM', 'spectrum_model', 'fit_link', 'pulsar_page_link',)
     list_filter = ('spectrum_model',)
@@ -163,10 +99,6 @@ class SpectralFitAdmin(admin.ModelAdmin):
 
 
 admin.site.register(models.ATNFFluxMeasurement, ATNFFluxMeasurementAdmin)
-admin.site.register(models.Author, AuthorAdmin)
-admin.site.register(models.AuthorOrder, AuthorOrderAdmin)
-admin.site.register(models.Bibtex, BibtexAdmin)
-admin.site.register(models.EditorOrder, AuthorOrderAdmin)
 admin.site.register(models.Pulsar, PulsarAdmin)
 admin.site.register(models.PulsarProperty, PulsarPropertyAdmin)
 admin.site.register(models.PulsarPropertyMeasurement, PulsarPropertyMeasurementAdmin)
