@@ -289,13 +289,13 @@ class PulsarProperty(models.Model):
 
     def __str__(self):
         if self.symbol:
-            return f"{self.name} ({self.symbol})"
+            return f"{self.symbol}, {self.name}"
 
         return self.name
 
     class Meta:
         verbose_name_plural = "Pulsar properties"
-        ordering = ("name",)
+        ordering = ("symbol", "name",)
 
 
 class PulsarPropertyMeasurement(models.Model):
@@ -392,13 +392,22 @@ class PulsarPropertyMeasurement(models.Model):
 
     @property
     def value_display(self):
+        valstr = f"{self.value}"
+
         if self.error and self.error_low:
-            return f"{self.value} (+{self.error} / -{self.error_low})"
+            valstr += f" (+{self.error} / -{self.error_low})"
+        elif self.error:
+            valstr += f" ± {self.error}"
 
-        if self.error:
-            return f"{self.value} ± {self.error} {self.unit}"
+        if self.unit:
+            valstr += f" {u.Unit(self.unit)}"
 
-        return f"{self.value} {self.unit}"
+        if self.is_lower_limit:
+            valstr = "≥ " + valstr
+        elif self.is_upper_limit:
+            valstr = "≤ " + valstr
+
+        return valstr
 
     def clean(self):
 
