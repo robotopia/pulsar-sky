@@ -382,3 +382,22 @@ def import_spectra(request):
 
     return redirect(reverse('admin:core_spectralfit_changelist'))
     #return HttpResponse("ok", headers={"Content-Type": "text/plain"})
+
+
+def construct_ephemeris(request, pk):
+
+    pulsar = models.Pulsar.objects.get(pk=pk)
+    if not pulsar:
+        return HttpResponseBadRequest(f"Pulsar ID {pk} not found")
+
+    measurements = models.PulsarPropertyMeasurement.objects.filter(pulsar=pulsar, pulsar_property__ephemeris_parameter_name__isnull=False)
+    if not measurements.exists():
+        return HttpResponseBadRequest(f"{pulsar} does not have any measurements")
+
+    context = {
+        'pulsar': pulsar,
+        'measurements': measurements,
+    }
+
+    return render(request, 'construct_ephemeris.html', context)
+

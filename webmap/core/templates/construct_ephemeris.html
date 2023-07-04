@@ -1,0 +1,10 @@
+{% load static %}
+
+<html>
+    <body>
+        <h1>{{ pulsar }}</h1>
+        {% for measurement in measurements %}
+        <pre>{{ measurement.pulsar_property.ephemeris_parameter_name|ljust:"32" }} {{ measurement.value|rjust:"32" }}</pre>
+        {% endfor %}
+    </body>
+</html>
