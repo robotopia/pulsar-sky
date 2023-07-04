@@ -68,6 +68,7 @@ class BibtexAdmin(admin.ModelAdmin):
         }),
         ('Other', {
             'fields': (
+                'abstract',
                 'notes',
             ),
         }),

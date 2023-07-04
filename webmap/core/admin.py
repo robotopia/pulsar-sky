@@ -77,6 +77,7 @@ class PulsarPropertyAdmin(admin.ModelAdmin):
 
 class PulsarPropertyMeasurementAdmin(admin.ModelAdmin):
     list_display = ('id', 'pulsar', 'pulsar_property', 'value_display', 'bibtex', 'freq_MHz', 'bandwidth_MHz',)
+    search_fields = ['pulsar__jname', 'pulsar__bname',]
     #list_editable = ('freq_MHz', 'bandwidth_MHz',)
     list_filter = (
         ('pulsar', admin.RelatedOnlyFieldListFilter),
