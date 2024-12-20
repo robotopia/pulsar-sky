@@ -2,3 +2,4 @@ django
 astropy
 numpy
 pulsar-spectra
+mysqlclient

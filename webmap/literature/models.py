@@ -4,13 +4,13 @@ from django.db import models
 class Journal(models.Model):
 
     name = models.CharField(
-        max_length=256,
+        max_length=255,
         unique=True,
         help_text="The full name of the journal.",
     )
 
     abbr = models.CharField(
-        max_length=32,
+        max_length=31,
         unique=True,
         help_text="The abbreviated name of the journal.",
     )
@@ -64,27 +64,27 @@ class Bibtex(models.Model):
     )
 
     citekey = models.CharField(
-        max_length=256,
+        max_length=255,
         unique=True,
         help_text="The citation key for this reference.",
     )
 
     address = models.CharField(
-        max_length=1024,
+        max_length=1023,
         null=True,
         blank=True,
         help_text="The address of the publisher or the institution.",
     )
 
     annote = models.CharField(
-        max_length=1024,
+        max_length=1023,
         null=True,
         blank=True,
         help_text="An annotation (brief descriptive paragraph) about the reference.",
     )
 
     booktitle = models.CharField(
-        max_length=1024,
+        max_length=1023,
         null=True,
         blank=True,
         help_text="The title of the book when using an inbook or incollection BibTeX entry type.",
@@ -98,28 +98,28 @@ class Bibtex(models.Model):
 
     doi = models.CharField(
         verbose_name="DOI",
-        max_length=256,
+        max_length=255,
         null=True,
         blank=True,
         help_text="The digital object identifier (DOI) of a journal article, conference paper, book chapter or book.",
     )
 
     edition = models.CharField(
-        max_length=16,
+        max_length=15,
         null=True,
         blank=True,
         help_text="The edition number of a book.",
     )
 
     how_published = models.CharField(
-        max_length=256,
+        max_length=255,
         null=True,
         blank=True,
         help_text="A notice for unusual publications.",
     )
 
     institution = models.CharField(
-        max_length=256,
+        max_length=255,
         null=True,
         blank=True,
         help_text="The name of the institution that published and/or sponsored the report.",
@@ -127,7 +127,7 @@ class Bibtex(models.Model):
 
     issn = models.CharField(
         verbose_name="ISSN",
-        max_length=64,
+        max_length=63,
         null=True,
         blank=True,
         help_text="The International Standard Serial Number (ISSN) of a journal or magazine.",
@@ -135,14 +135,14 @@ class Bibtex(models.Model):
 
     isbn = models.CharField(
         verbose_name="ISBN",
-        max_length=64,
+        max_length=63,
         null=True,
         blank=True,
         help_text="The International Standard Book Number (ISBN) of a book or report.",
     )
 
     issue = models.CharField(
-        max_length=64,
+        max_length=63,
         null=True,
         blank=True,
     )
@@ -156,70 +156,70 @@ class Bibtex(models.Model):
     )
 
     month = models.CharField(
-        max_length=16,
+        max_length=15,
         null=True,
         blank=True,
         help_text="The month during the work was published or in the case of an unpublished article the month during it was written.",
     )
 
     note = models.CharField(
-        max_length=1024,
+        max_length=1023,
         null=True,
         blank=True,
         help_text="Any information that might be interesting to the reader and did not fit into any of the other fields.",
     )
 
     number = models.CharField(
-        max_length=128,
+        max_length=127,
         null=True,
         blank=True,
         help_text="The number of the report for a techreport entry, and the issue number for a journal article.",
     )
 
     organization = models.CharField(
-        max_length=256,
+        max_length=255,
         null=True,
         blank=True,
         help_text="The name of the institution that organized or sponsored the conference, or that published the manual.",
     )
 
     pages = models.CharField(
-        max_length=64,
+        max_length=63,
         null=True,
         blank=True,
         help_text="Page numbers or a page range.",
     )
 
     publisher = models.CharField(
-        max_length=256,
+        max_length=255,
         null=True,
         blank=True,
         help_text="The name of the publisher.",
     )
 
     school = models.CharField(
-        max_length=256,
+        max_length=255,
         null=True,
         blank=True,
         help_text="The name of the university or degree awarding institution where the thesis was written.",
     )
 
     type = models.CharField(
-        max_length=256,
+        max_length=255,
         null=True,
         blank=True,
         help_text="A more descriptive name of the type of work.",
     )
 
     series = models.CharField(
-        max_length=256,
+        max_length=255,
         null=True,
         blank=True,
         help_text="The name of the series or set of books.",
     )
 
     title = models.CharField(
-        max_length=1024,
+        max_length=1023,
         null=True,
         blank=True,
         help_text="The title of the work.",
@@ -227,7 +227,7 @@ class Bibtex(models.Model):
 
     url = models.CharField(
         verbose_name="URL",
-        max_length=1024,
+        max_length=1023,
         null=True,
         blank=True,
         help_text="The URL of a web page.",
@@ -240,7 +240,7 @@ class Bibtex(models.Model):
     )
 
     year = models.CharField(
-        max_length=64,
+        max_length=63,
         null=True,
         blank=True,
         help_text="The year the work was published or in the case of an unpublished article the year it was written.",
@@ -374,24 +374,24 @@ class Bibtex(models.Model):
 class Author(models.Model):
 
     first = models.CharField(
-        max_length=64,
+        max_length=63,
         help_text="First name or given names",
     )
 
     last = models.CharField(
-        max_length=64,
+        max_length=63,
         help_text="Last name or family name",
     )
 
     von = models.CharField(
-        max_length=16,
+        max_length=15,
         null=True,
         blank=True,
         help_text="A particle (e.g. de, de la, der, van, von)",
     )
 
     jr = models.CharField(
-        max_length=16,
+        max_length=15,
         null=True,
         blank=True,
         help_text="A suffix (e.g. Jr., Sr., III)"
