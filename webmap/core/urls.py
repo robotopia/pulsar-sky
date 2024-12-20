@@ -22,7 +22,7 @@ from django.conf.urls.static import static
 from . import views
 
 urlpatterns = [
-    re_path(r'^map/$', views.map, name='map'),
-    re_path(r'^pulsar/(?P<pk>[0-9]+)/$', views.pulsar_view, name='pulsar_view'),
-    re_path(r'^construct-ephemeris/(?P<pk>[0-9]+)/$', views.construct_ephemeris, name='construct_ephemeris'),
+    re_path(r'^$', views.map, name='map'),
+    #re_path(r'^pulsar/(?P<pk>[0-9]+)/$', views.pulsar_view, name='pulsar_view'),
+    #re_path(r'^construct-ephemeris/(?P<pk>[0-9]+)/$', views.construct_ephemeris, name='construct_ephemeris'),
 ]

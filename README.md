@@ -100,6 +100,4 @@ If none is provided, the default is 8000.
 
 ## Screenshot of pulsar sky map
 
-`core/map`:
-
 ![screenshot.png](screenshot.png)
