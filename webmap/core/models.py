@@ -86,6 +86,12 @@ class Pulsar(models.Model):
         help_text="The rotation period (s).",
     )
 
+    pdot = models.FloatField(
+        verbose_name="Period derivative (s/s)",
+        blank=True,
+        null=True,
+    )
+
     dm = models.FloatField(
         verbose_name="DM (pc/cm³)",
         blank=True,
@@ -145,8 +151,9 @@ class Pulsar(models.Model):
 
     @property
     def ra_dec(self):
-        coord = SkyCoord(ra=self.ra*u.deg, dec=self.dec*u.deg)
-        return coord.to_string('hmsdms', precision=1)
+        if self.ra and self.dec:
+            coord = SkyCoord(ra=self.ra*u.deg, dec=self.dec*u.deg)
+            return coord.to_string('hmsdms', precision=1)
 
     ra_dec.fget.short_description = "Coordinates (RA Dec)"
 
@@ -253,11 +260,23 @@ class PulsarProperty(models.Model):
         blank=True,
     )
 
+    ephemeris_parameter_name = models.CharField(
+        max_length=64,
+        null=True,
+        blank=True,
+        help_text="The name of the equivalent parameter in psrcat-style ephemeris files.",
+    )
+
     unit = models.CharField(
         null=True,
         blank=True,
         max_length=64,
         help_text="A string that can be parsed by astropy.units. Leave blank if dimensionless.",
+    )
+
+    description = models.TextField(
+        blank=True,
+        null=True,
     )
 
     def clean(self):
@@ -270,13 +289,13 @@ class PulsarProperty(models.Model):
 
     def __str__(self):
         if self.symbol:
-            return f"{self.name} ({self.symbol})"
+            return f"{self.symbol}, {self.name}"
 
         return self.name
 
     class Meta:
         verbose_name_plural = "Pulsar properties"
-        ordering = ("name",)
+        ordering = ("symbol", "name",)
 
 
 class PulsarPropertyMeasurement(models.Model):
@@ -307,6 +326,16 @@ class PulsarPropertyMeasurement(models.Model):
         blank=True,
         max_length=1024,
         help_text="The lower error on \"value\". This should only be used if the error field is non-empty.",
+    )
+
+    is_lower_limit = models.BooleanField(
+        default=False,
+        verbose_name="Lower limit?",
+    )
+
+    is_upper_limit = models.BooleanField(
+        default=False,
+        verbose_name="Upper limit?",
     )
 
     mode = models.CharField(
@@ -355,15 +384,30 @@ class PulsarPropertyMeasurement(models.Model):
         on_delete=models.CASCADE,
     )
 
+    notes = models.TextField(
+        null=True,
+        blank=True,
+        help_text="Any extra notes about this measurement.",
+    )
+
     @property
     def value_display(self):
+        valstr = f"{self.value}"
+
         if self.error and self.error_low:
-            return f"{self.value} (+{self.error} / -{self.error_low})"
+            valstr += f" (+{self.error} / -{self.error_low})"
+        elif self.error:
+            valstr += f" ± {self.error}"
 
-        if self.error:
-            return f"{self.value} ± {self.error} {self.unit}"
+        if self.unit:
+            valstr += f" {u.Unit(self.unit)}"
 
-        return f"{self.value} {self.unit}"
+        if self.is_lower_limit:
+            valstr = "≥ " + valstr
+        elif self.is_upper_limit:
+            valstr = "≤ " + valstr
+
+        return valstr
 
     def clean(self):
 

@@ -15,7 +15,7 @@ class ATNFFluxMeasurementAdmin(admin.ModelAdmin):
     list_filter = ('freq',)
 
 class PulsarAdmin(admin.ModelAdmin):
-    list_display = ('id', '__str__', 'ra_dec', 'period', 'DM', 'RM', 'spectrum_model', 'fit_link', 'pulsar_page_link',)
+    list_display = ('id', '__str__', 'ra_dec', 'period', 'DM', 'RM', 'spectrum_model', 'fit_link', 'pulsar_page_link', 'construct_ephemeris_link',)
     list_filter = ('spectrum_model',)
     search_fields = ('bname', 'jname')
 
@@ -29,6 +29,10 @@ class PulsarAdmin(admin.ModelAdmin):
     def pulsar_page_link(self, obj):
         url = reverse('pulsar_view', kwargs={"pk": obj.pk})
         return format_html('<a href="{url}">{name} link</a>', url=url, name=obj.name)
+
+    def construct_ephemeris_link(self, obj):
+        url = reverse('construct_ephemeris', kwargs={"pk": obj.pk})
+        return format_html('<a href="{url}">Construct ephemeris</a>', url=url)
 
     actions = ['set_atnf_power_laws', 'set_atnf_power_laws_force']
 
@@ -80,6 +84,7 @@ class PulsarPropertyAdmin(admin.ModelAdmin):
 
 class PulsarPropertyMeasurementAdmin(admin.ModelAdmin):
     list_display = ('id', 'pulsar', 'pulsar_property', 'value_display', 'bibtex', 'freq_MHz', 'bandwidth_MHz',)
+    search_fields = ['pulsar__jname', 'pulsar__bname',]
     #list_editable = ('freq_MHz', 'bandwidth_MHz',)
     list_filter = (
         ('pulsar', admin.RelatedOnlyFieldListFilter),

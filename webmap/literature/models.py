@@ -252,6 +252,12 @@ class Bibtex(models.Model):
         help_text="Any extra notes about this bibtex entry.",
     )
 
+    abstract = models.TextField(
+        null=True,
+        blank=True,
+        help_text="The paper's abstract.",
+    )
+
     @property
     def author_string(self):
         author_orders = self.author_orders.all().order_by('order')
@@ -399,7 +405,7 @@ class Author(models.Model):
             return f"{self.last}, {self.jr}, {self.first}"
 
         if self.von:
-            return f"{self.von} {self.last}, {self.first}",
+            return f"{self.von} {self.last}, {self.first}"
 
         return f"{self.last}, {self.first}"
 
