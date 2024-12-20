@@ -142,6 +142,10 @@ def set_atnf_power_law(pulsar, default_spectral_index=-1.6, overwrite=False, set
         a_value = popt[1]
         c_value = popt[0]
 
+    # If any of the parameters have turned up non-finite, do nothing with them
+    if not np.isfinite(a_value) or not np.isfinite(c_value) or not np.isfinite(X_ref):
+        return False
+
     # ATNF fluxes are in mJy, but pulsar_spectra expects Jy
     c_value /= 1e3
 
@@ -333,7 +337,7 @@ def import_spectra():
     for pulsar in pulsars:
         print(pulsar)
         try:
-            freqs, bands, fluxs, flux_errs, refs = cat_dict[pulsar.name]
+            freqs, bands, fluxs, flux_errs, refs = cat_dict[pulsar.jname]
             best_model_name, iminuit_result, fit_info, p_best, p_category = find_best_spectral_fit(
                 pulsar.name,
                 freqs,
@@ -395,4 +399,52 @@ def construct_ephemeris(request, pk):
     }
 
     return render(request, 'construct_ephemeris.html', context)
+
+
+def init_spectrum_models():
+
+    spl = models.SpectrumModel.objects.create(name="Simple power law", pulsar_spectra_name="simple_power_law")
+    aspl = models.SpectrumModel.objects.create(name="ATNF simple power law", pulsar_spectra_name="simple_power_law")
+    bpl = models.SpectrumModel.objects.create(name="Broken power law", pulsar_spectra_name="broken_power_law")
+    dto = models.SpectrumModel.objects.create(name="Double turn-over", pulsar_spectra_name="double_turn_over_spectrum")
+    hfco = models.SpectrumModel.objects.create(name="High frequency cut-off power law", pulsar_spectra_name="high_frequency_cut_off_power_law")
+    lp = models.SpectrumModel.objects.create(name="Log-parabolic", pulsar_spectra_name="log_parabolic_spectrum")
+    lfto = models.SpectrumModel.objects.create(name="Low frequency turn-over power law", pulsar_spectra_name="low_frequency_turn_over_power_law")
+
+    bpl.parameters.create(name='vb')
+    bpl.parameters.create(name='a1')
+    bpl.parameters.create(name='a2')
+    bpl.parameters.create(name='c')
+    bpl.parameters.create(name='v0')
+
+    dto.parameters.create(name='vc')
+    dto.parameters.create(name='vpeak')
+    dto.parameters.create(name='a')
+    dto.parameters.create(name='beta')
+    dto.parameters.create(name='c')
+    dto.parameters.create(name='v0')
+
+    hfco.parameters.create(name='vc')
+    hfco.parameters.create(name='a')
+    hfco.parameters.create(name='c')
+    hfco.parameters.create(name='v0')
+
+    lp.parameters.create(name='a')
+    lp.parameters.create(name='b')
+    lp.parameters.create(name='c')
+    lp.parameters.create(name='v0')
+
+    lfto.parameters.create(name='vpeak')
+    lfto.parameters.create(name='a')
+    lfto.parameters.create(name='c')
+    lfto.parameters.create(name='beta')
+    lfto.parameters.create(name='v0')
+
+    spl.parameters.create(name='a')
+    spl.parameters.create(name='c')
+    spl.parameters.create(name='v0')
+
+    aspl.parameters.create(name='a')
+    aspl.parameters.create(name='c')
+    aspl.parameters.create(name='v0')
 
