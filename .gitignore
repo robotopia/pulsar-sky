@@ -1,4 +1,3 @@
-# The database itself (should be backed up elsewhere)
-webmap/pulsarsky.sqlite3
+.env
 
 __pycache__
