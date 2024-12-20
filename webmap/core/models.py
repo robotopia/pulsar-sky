@@ -382,3 +382,48 @@ class PulsarPropertyMeasurement(models.Model):
 
     class Meta:
         ordering = ("pulsar", "pulsar_property", "bibtex__year",)
+
+
+class PulsarMention(models.Model):
+
+    IMPORTANCE_1 = '1'
+    IMPORTANCE_2 = '2'
+    IMPORTANCE_3 = '3'
+
+    IMPORTANCE_CHOICES = [
+        (IMPORTANCE_1, 'Incidental mention'),
+        (IMPORTANCE_2, 'Frequent mention'),
+        (IMPORTANCE_3, 'Central object of study'),
+    ]
+
+    pulsar = models.ForeignKey(
+        "Pulsar",
+        on_delete=models.PROTECT,
+        help_text="The pulsar mentioned in the reference.",
+    )
+
+    bibtex = models.ForeignKey(
+        literature_models.Bibtex,
+        on_delete=models.PROTECT,
+        help_text="The reference which mentions the pulsar.",
+    )
+
+    importance = models.CharField(
+        max_length=1,
+        null=True,
+        blank=True,
+        choices=IMPORTANCE_CHOICES,
+    )
+
+    def __str__(self):
+        return f"{self.pulsar} in {self.bibtex}"
+
+    class Meta:
+        ordering = ("pulsar", "bibtex",)
+        constraints = [
+            models.UniqueConstraint(
+                fields=['pulsar', 'bibtex'],
+                name='unique_pulsar_mention',
+            ),
+        ]
+

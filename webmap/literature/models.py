@@ -226,6 +226,7 @@ class Bibtex(models.Model):
     )
 
     url = models.CharField(
+        verbose_name="URL",
         max_length=1024,
         null=True,
         blank=True,

@@ -72,6 +72,9 @@ class PulsarAdmin(admin.ModelAdmin):
             messages.SUCCESS,
         )
 
+class PulsarMentionAdmin(admin.ModelAdmin):
+    list_display = ('id', 'pulsar', 'bibtex', 'importance',)
+
 class PulsarPropertyAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'symbol', 'unit',)
 
@@ -100,6 +103,7 @@ class SpectralFitAdmin(admin.ModelAdmin):
 
 admin.site.register(models.ATNFFluxMeasurement, ATNFFluxMeasurementAdmin)
 admin.site.register(models.Pulsar, PulsarAdmin)
+admin.site.register(models.PulsarMention, PulsarMentionAdmin)
 admin.site.register(models.PulsarProperty, PulsarPropertyAdmin)
 admin.site.register(models.PulsarPropertyMeasurement, PulsarPropertyMeasurementAdmin)
 admin.site.register(models.SpectrumModel, SpectrumModelAdmin)
