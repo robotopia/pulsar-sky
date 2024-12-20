@@ -78,8 +78,12 @@ WSGI_APPLICATION = "webmap.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "pulsarsky.sqlite3",
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": 'pulsar_sky',
+        'USER':os.environ['DBUSER'],
+        'PASSWORD':os.environ['DBPASS'],
+        'HOST':os.environ['DBHOST'],
+        'PORT':os.environ['DBPORT'],
     }
 }
 
