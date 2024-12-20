@@ -65,12 +65,11 @@ def power_law_fit(νnorm, c, α):
 def power_law(ν, νref, c, α):
     return power_law_fit(ν/νref)
 
-def set_all_atnf_power_laws(request):
+def set_all_atnf_power_laws():
 
     for pulsar in models.Pulsar.objects.all():
         set_atnf_power_law(pulsar)
 
-    return HttpResponse("done", headers={"Content-Type": "text/plain"})
 
 def set_atnf_power_law(pulsar, default_spectral_index=-1.6, overwrite=False, set_as_select=True):
     '''
@@ -174,7 +173,7 @@ def set_atnf_power_law(pulsar, default_spectral_index=-1.6, overwrite=False, set
 
     return True
 
-def update_atnf_fluxes(request):
+def update_atnf_fluxes():
 
     # Now grab the catalogue's contents
     completed_process = subprocess.run(
@@ -239,10 +238,8 @@ def update_atnf_fluxes(request):
 
             atnf_flux_measurement.save()
 
-    #return HttpResponse("ok", headers={"Content-Type": "text/plain"})
-    return redirect(reverse('admin:core_atnffluxmeasurement_changelist'))
 
-def import_atnf(request):
+def import_atnf():
 
     # Grab the ATNF catalogue number (this also tests whether psrcat is installed)
     completed_process = subprocess.run(
@@ -303,6 +300,8 @@ def import_atnf(request):
         except:
             rm_error = None
 
+        print(f"Importing {bname}...")
+
         atnf_pulsars.append(
             models.Pulsar(
                 bname=bname,
@@ -326,9 +325,8 @@ def import_atnf(request):
     new_pulsars = [p for p in atnf_pulsars if p.name not in duplicate_names]
     models.Pulsar.objects.bulk_create(new_pulsars)
 
-    return redirect(reverse('admin:core_pulsar_changelist'))
 
-def import_spectra(request):
+def import_spectra():
 
     cat_dict = collect_catalogue_fluxes()
     pulsars = models.Pulsar.objects.all()
@@ -379,9 +377,6 @@ def import_spectra(request):
                 # And a new fit
                 fit = models.SpectralFit(pulsar=pulsar, parameter=parameter, value=v)
                 fit.save()
-
-    return redirect(reverse('admin:core_spectralfit_changelist'))
-    #return HttpResponse("ok", headers={"Content-Type": "text/plain"})
 
 
 def construct_ephemeris(request, pk):

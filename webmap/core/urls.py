@@ -25,8 +25,4 @@ urlpatterns = [
     re_path(r'^map/$', views.map, name='map'),
     re_path(r'^pulsar/(?P<pk>[0-9]+)/$', views.pulsar_view, name='pulsar_view'),
     re_path(r'^construct-ephemeris/(?P<pk>[0-9]+)/$', views.construct_ephemeris, name='construct_ephemeris'),
-    re_path(r'^import_atnf/$', views.import_atnf, name='import_atnf'),
-    re_path(r'^update_atnf_fluxes/$', views.update_atnf_fluxes, name='update_atnf_fluxes'),
-    re_path(r'^import_spectra/$', views.import_spectra, name='import_spectra'),
-    re_path(r'^set_all_atnf_power_laws/$', views.set_all_atnf_power_laws, name='set_all_atnf_power_laws'),
 ]
