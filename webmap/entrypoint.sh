@@ -5,6 +5,10 @@ set -e
 CONTAINER_FIRST_STARTUP="CONTAINER_FIRST_STARTUP"
 if [ ! -e /$CONTAINER_FIRST_STARTUP ]; then
     touch /$CONTAINER_FIRST_STARTUP
+
+    python manage.py makemigrations
+    python manage.py migrate
+    python manage.py collectstatic --no-input
 fi
 
 if [ "$DJANGO_DEBUG" == "True" ]

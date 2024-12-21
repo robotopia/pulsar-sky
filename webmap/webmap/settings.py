@@ -30,7 +30,7 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
     '0.0.0.0',
     'localhost',
-    os.getenv("PUSLARSKY_URL"),
+    os.getenv("PULSARSKY_URL"),
 ]
 
 
@@ -127,15 +127,22 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
+if DEBUG == True:
+    MEDIA_ROOT = os.path.join(os.path.dirname(__file__), 'media/')
+    STATIC_ROOT = os.path.join(os.path.dirname(__file__), 'static/')
+else:
+    MEDIA_ROOT = '/var/www/pulsar-sky/media/'
+    STATIC_ROOT ='/var/www/pulsar-sky/static/'
+
+    STATICFILES_DIRS = [
+        os.path.join(os.path.dirname(__file__), 'static/')
+    ]
+
 STATIC_URL = "static/"
+MEDIA_URL = "media/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# Base url to serve media files
-MEDIA_URL = '/media/'
-
-# Path where media is stored
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')

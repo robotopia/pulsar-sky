@@ -1,6 +1,12 @@
 version: "3.9"
 
 volumes:
+  web-static:
+    driver: local
+    driver_opts:
+      type: none
+      device: /var/www/pulsar-sky
+      o: bind
   uwsgi-data:
     driver: local
     driver_opts:
@@ -17,7 +23,7 @@ volumes:
 services:
   pulsar-sky:
     container_name: pulsar-sky
-    image: pulsar-sky:v0.1
+    image: pulsar-sky
     build: webmap
     restart: always
     environment:
@@ -30,6 +36,10 @@ services:
       DBHOST: ${DBHOST}
       DBPORT: ${DBPORT}
     tty: true
+    volumes:
+      - uwsgi-data:/tmp/uwsgi
+      - pulsar-sky-django:/pulsar-sky
+      - web-static:/var/www/pulsar-sky
     networks:
       - frontend
       - backend
