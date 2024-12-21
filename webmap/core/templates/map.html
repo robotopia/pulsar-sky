@@ -1,15 +1,17 @@
+<!DOCTYPE html>
+
 {% load static %}
 
 <html>
     <body>
         <div class="settings" style="position: absolute; width: 50%;">
-            <input class="formLabel" value="Frequency: {{ freq_MHz }} MHz"></input>
+            <input id="freq-input-label" class="formLabel" value="Frequency: {{ freq_MHz }} MHz"></input>
             <input type="range" min="7.6990" max="9.6990" class="slider" id="frequency" oninput="this.previousElementSibling.value = 'Frequency: ' + (10**(this.value - 6)).toFixed(1) + ' MHz'" value="{{ logFreq }}" step="0.005" onchange="update_fluxes()"></input>
-            <input class="formLabel" value="Minimum visibile flux density: {{ minJy }} Jy"></input>
+            <input id="minJy-input-label" class="formLabel" value="Minimum visibile flux density: {{ minJy }} Jy"></input>
             <input type="range" min="-4" max="4" class="slider" id="minLogJy" oninput="this.previousElementSibling.value = 'Minimum visibile flux density: ' + (10**this.value).toFixed(5) + ' Jy'" value="{{ minLogJy }}" step="0.005" onchange="update_fluxes()"></input>
-            <input class="formLabel" value="Maximum visibile flux density: {{ maxJy }} Jy"></input>
+            <input id="maxJy-input-label" class="formLabel" value="Maximum visibile flux density: {{ maxJy }} Jy"></input>
             <input type="range" min="-4" max="4" class="slider" id="maxLogJy" oninput="this.previousElementSibling.value = 'Maximum visibile flux density: ' + (10**this.value).toFixed(5) + ' Jy'" value="{{ maxLogJy }}" step="0.005" onchange="update_fluxes()"></input>
-            <input class="formLabel" value="Show flashing by period"></input>
+            <input id="flashing-input-label" class="formLabel" value="Show flashing by period"></input>
             <input type="checkbox" id="cbFlashing" onclick="toggle_flashing(this);"></input>
         </div>
         <div id="map_div">
@@ -19,6 +21,9 @@
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://d3js.org/d3-geo-projection.v2.min.js"></script>
     <script src="//unpkg.com/d3-geo-zoom"></script>
+    <script type="application/json" id="data">
+        {{ data|safe }}
+    </script>
     <script>
         // tooltip div
         var tooltip = d3.select("body").append("div")
@@ -115,24 +120,7 @@
             return (logJy - minLogJy.value) / (maxLogJy.value - minLogJy.value);
         }
 
-        data = [
-            {% for d in data %}
-            {
-                "name": "{{ d.pulsar.name }}",
-                "ra": {{ d.pulsar.ra }},
-                "dec": {{ d.pulsar.dec }},
-                "period": "{{ d.pulsar.period }}",
-                "dm": "{{ d.pulsar.dm }}",
-                "rm": "{{ d.pulsar.rm }}",
-                "spectrum_model": "{{ d.pulsar.spectrum_model.pulsar_spectra_name }}",
-                "parameters": {
-                    {% for spectral_fit in d.spectral_fits %}
-                    "{{ spectral_fit.parameter.name }}": {{ spectral_fit.value }},
-                    {% endfor %}
-                }
-            },
-            {% endfor %}
-        ]
+        const data = JSON.parse(document.getElementById('data').textContent);
 
         var map_svg = d3.select("#map")
         var width = +map_svg.attr("width");

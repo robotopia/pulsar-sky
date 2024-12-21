@@ -5,9 +5,11 @@ from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedire
 from . import models
 from django.db.models import Q
 
+from collections import defaultdict
 import subprocess
 from scipy.optimize import curve_fit
 import numpy as np
+import json
 
 from pulsar_spectra.catalogue import collect_catalogue_fluxes
 from pulsar_spectra.spectral_fit import find_best_spectral_fit
@@ -31,14 +33,43 @@ def map(request):
     except:
         freq = 1.4e9
     logFreq = np.log10(freq)
-    print(logFreq)
 
-    pulsars = models.Pulsar.objects.filter(spectrum_model__isnull=False)
+    pulsars = models.Pulsar.objects.filter(spectrum_model__isnull=False).prefetch_related('fits').values(
+        'id', 'bname', 'jname', 'ra', 'dec', 'period', 'dm', 'rm',
+        'spectrum_model__pulsar_spectra_name', 'fits__parameter__spectrum_model__pulsar_spectra_name',
+        'fits__parameter__name', 'fits__value',
+    )
+
+    data = defaultdict(lambda: {
+        'id': None,
+        'name': None,
+        'ra': None,
+        'dec': None,
+        'period': None,
+        'dm': None,
+        'rm': None,
+        'spectrum_model': None,
+        'parameters': {},
+    })
+
+    for pulsar in pulsars:
+        pulsar_id = pulsar['id']
+        if data[pulsar_id]['id'] is None and pulsar['spectrum_model__pulsar_spectra_name'] == pulsar['fits__parameter__spectrum_model__pulsar_spectra_name']:
+            data[pulsar_id]['id'] = pulsar_id
+            data[pulsar_id]['name'] = pulsar['bname'] or pulsar['jname']
+            data[pulsar_id]['ra'] = pulsar['ra']
+            data[pulsar_id]['dec'] = pulsar['dec']
+            data[pulsar_id]['period'] = pulsar['period'] or ''
+            data[pulsar_id]['dm'] = pulsar['dm'] or ''
+            data[pulsar_id]['rm'] = pulsar['rm'] or ''
+            data[pulsar_id]['spectrum_model'] = pulsar['spectrum_model__pulsar_spectra_name']
+        if pulsar['fits__parameter__name'] is not None and pulsar['fits__value'] is not None:
+            data[pulsar_id]['parameters'][pulsar['fits__parameter__name']] = pulsar['fits__value']
+
+    nested_json = json.dumps(list(data.values()))
+
     context = {
-        'data': [{
-            'pulsar': pulsar,
-            'spectral_fits': models.SpectralFit.objects.filter(pulsar=pulsar, parameter__spectrum_model=pulsar.spectrum_model),
-        } for pulsar in pulsars],
+        'data': nested_json,
         'maxJy': maxJy,
         'maxLogJy': maxLogJy,
         'minJy': minJy,
