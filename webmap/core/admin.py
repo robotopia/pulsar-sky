@@ -15,10 +15,11 @@ class ATNFFluxMeasurementAdmin(admin.ModelAdmin):
     list_filter = ('freq',)
 
 class PulsarAdmin(admin.ModelAdmin):
-    list_display = ('id', '__str__', 'ra_dec', 'period', 'DM', 'RM', 'spectrum_model', 'fit_link', 'pulsar_page_link', 'construct_ephemeris_link',)
-    list_filter = ('spectrum_model',)
-    search_fields = ('bname', 'jname')
+    list_display = ['id', '__str__', 'ra_dec', 'period', 'DM', 'RM', 'spectrum_model']
+    list_filter = ['spectrum_model']
+    search_fields = ['bname', 'jname']
 
+    '''
     def fit_link(self, obj):
         if obj.spectrum_model:
             url = reverse('admin:core_spectralfit_changelist') + f'?pulsar__id__exact={obj.id}'
@@ -75,6 +76,7 @@ class PulsarAdmin(admin.ModelAdmin):
             ) % num_set,
             messages.SUCCESS,
         )
+    '''
 
 class PulsarMentionAdmin(admin.ModelAdmin):
     list_display = ('id', 'pulsar', 'bibtex', 'importance',)
