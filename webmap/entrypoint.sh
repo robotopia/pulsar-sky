@@ -5,14 +5,6 @@ set -e
 CONTAINER_FIRST_STARTUP="CONTAINER_FIRST_STARTUP"
 if [ ! -e /$CONTAINER_FIRST_STARTUP ]; then
     touch /$CONTAINER_FIRST_STARTUP
-
-    # Iniitalise the DB with schema
-    python3 manage.py makemigrations published
-    python3 manage.py migrate published
-    python3 manage.py migrate
-    python3 manage.py migrate --run-syncdb
-    python3 manage.py collectstatic
-
 fi
 
 if [ "$DJANGO_DEBUG" == "True" ]

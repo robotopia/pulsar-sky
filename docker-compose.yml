@@ -1,0 +1,57 @@
+version: "3.9"
+
+volumes:
+  uwsgi-data:
+    driver: local
+    driver_opts:
+      type: none
+      device: /tmp/uwsgi
+      o: bind
+  pulsar-sky-django:
+    driver: local
+    driver_opts:
+      type: none
+      device: ${SRCDIR}/webmap
+      o: bind
+
+services:
+  pulsar-sky:
+    container_name: pulsar-sky
+    image: pulsar-sky:v0.1
+    build: webmap
+    restart: always
+    environment:
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+      DJANGO_DEBUG: ${DJANGO_DEBUG}
+      PULSARSKY_URL: ${PULSARSKY_URL}
+      DBNAME: ${DBNAME}
+      DBUSER: ${DBUSER}
+      DBPASS: ${DBPASS}
+      DBHOST: ${DBHOST}
+      DBPORT: ${DBPORT}
+    tty: true
+    networks:
+      - frontend
+      - backend
+    depends_on:
+      - mariadb
+  mariadb:
+    hostname: ${DBHOST}
+    container_name: mariadb-pulsar-sky
+    image: mariadb
+    restart: always
+    environment:
+      MYSQL_DATABASE: ${DBNAME}
+      MYSQL_USER: ${DBUSER}
+      MYSQL_PASSWORD: ${DBPASS}
+      MYSQL_RANDOM_ROOT_PASSWORD: ${DBPASS}
+    volumes:
+      - ./mysql:/var/lib/mysql
+      - ${DBSQL}:/docker-entrypoint-initdb.d/init.sql:ro
+      #- db_data:/var/lib/mysql
+    networks:
+      - backend
+
+networks:
+    frontend:
+    backend:
